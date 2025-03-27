@@ -1,0 +1,74 @@
+@page "/employees" 
+@using EmployeeManager.Data.Models
+@using Supabase
+@inject Client Supabase
+@rendermode InteractiveServer
+
+<h3>Employees</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (employees == null)
+{
+    <p>Loading...</p>
+}
+else if (!employees.Any())
+{
+    <p>No employees found.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Position</th>
+                    <th>Salary Per Year</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var employee in employees)
+                {
+                    <tr>
+                        <td>@employee.FirstName @employee.LastName</td>
+                        <td>@employee.Department</td>
+                        <td>@employee.Position</td>
+                        <td>@employee.Salary.ToString("C")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<Employees> employees = new();
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var response = await Supabase
+                .From<Employees>()
+                .Select("*")
+                .Get();
+
+            if (response?.Models != null)
+            {
+                employees = response.Models;
+                Console.WriteLine($"Loaded {employees.Count} employees");
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+            Console.WriteLine($"Error loading employees: {ex.Message}");
+        }
+    }
+}

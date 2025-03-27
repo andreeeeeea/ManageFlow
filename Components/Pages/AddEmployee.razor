@@ -1,0 +1,66 @@
+@page "/add-employee"
+@using EmployeeManager.Data.Models
+@using Supabase
+@inject Client Supabase
+@rendermode InteractiveServer
+
+
+<h3> Add New Employee</h3>
+
+<EditForm Model="@employee" OnValidSubmit="@SubmitEmployee">
+    <DataAnnotationsValidator />
+
+     <div class="mb-3">
+        <label for="firstName">First Name</label>
+        <InputText id="firstName" @bind-Value="employee.FirstName" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label for="lastName">Last Name</label>
+        <InputText id="lastName" @bind-Value="employee.LastName" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label for="department">Department</label>
+        <InputText id="department" @bind-Value="employee.Department" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label for="position">Position</label>
+        <InputText id="position" @bind-Value="employee.Position" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label for="salary">Salary Per Annum</label>
+        <InputNumber id="salary" @bind-Value="employee.Salary" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add Employee</button>
+</EditForm>
+
+@code {
+    private Employees employee = new();
+    private string? errorMessage;
+
+    private async Task SubmitEmployee()
+    {
+        try {
+            var response = await Supabase.From<Employees>()
+                .Insert(new List<Employees> {
+                    new Employees {
+                        FirstName = employee.FirstName,
+                        LastName = employee.LastName,
+                        Department = employee.Department,
+                        Position = employee.Position,
+                        Salary = employee.Salary
+                    }
+                });
+
+            Console.WriteLine($"Response: {response.Content}");
+        } 
+        catch(Exception ex) {
+            errorMessage = ex.Message;
+            Console.WriteLine($"Full error: {ex}");
+        }
+    }
+}

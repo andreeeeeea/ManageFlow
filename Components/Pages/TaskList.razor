@@ -1,0 +1,82 @@
+@page "/tasks"
+@using EmployeeManager.Data.Models
+@using Supabase
+@inject Client Supabase
+@rendermode InteractiveServer
+
+<h3>Tasks</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (tasks == null)
+{
+    <p>Loading...</p>
+}
+else if (!tasks.Any())
+{
+    <p>No tasks found.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Deadline</th>
+                    <th>Assigned Employees</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var task in tasks)
+                {
+                    <tr>
+                        <td>@task.Title</td>
+                        <td>@task.Description</td>
+                        <td>@(task.Deadline.HasValue ? task.Deadline.Value.ToShortDateString() : "N/A")</td>
+                        <td>
+                            @foreach (var employee in task.AssignedEmployeeIds){
+                                var emp = employees.FirstOrDefault(e => e.Id == employee);
+                                <span> @emp.FirstName @emp.LastName - @emp.Department | </span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+@code {
+    private List<Tasks> tasks = new();
+    private List<Employees> employees = new();
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var responseTasks = await Supabase
+                .From<Tasks>()
+                .Select("*")
+                .Get();
+            var responseEmployees = await Supabase
+                .From<Employees>()
+                .Select("*")
+                .Get();
+
+            if(responseTasks?.Models != null && responseEmployees?.Models != null)
+            {
+                tasks = responseTasks.Models;
+                employees = responseEmployees.Models;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+}
