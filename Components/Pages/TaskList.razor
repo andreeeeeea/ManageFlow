@@ -1,7 +1,7 @@
 @page "/tasks"
 @using EmployeeManager.Data.Models
-@using Supabase
-@inject Client Supabase
+@using static Supabase.Postgrest.Constants
+@inject Supabase.Client Supabase
 @rendermode InteractiveServer
 
 <h3>Tasks</h3>
@@ -22,11 +22,12 @@ else if (!tasks.Any())
 else
 {
     <div class="table-responsive">
-        <table class="table table-striped">
+        <table class="table">
             <thead>
                 <tr>
                     <th>Title</th>
                     <th>Description</th>
+                    <th>Status</th>
                     <th>Deadline</th>
                     <th>Assigned Employees</th>
                 </tr>
@@ -37,11 +38,16 @@ else
                     <tr>
                         <td>@task.Title</td>
                         <td>@task.Description</td>
-                        <td>@(task.Deadline.HasValue ? task.Deadline.Value.ToShortDateString() : "N/A")</td>
+                        <td>@task.Status</td>
+                        <td>@(task.Deadline?.ToShortDateString() ?? "No deadline")</td>
                         <td>
-                            @foreach (var employee in task.AssignedEmployeeIds){
-                                var emp = employees.FirstOrDefault(e => e.Id == employee);
-                                <span> @emp.FirstName @emp.LastName - @emp.Department | </span>
+                            @if (taskAssignments.ContainsKey(task.Id))
+                            {
+                                @string.Join(", ", taskAssignments[task.Id].Select(e => $"{e.FirstName} {e.LastName}"))
+                            }
+                            else
+                            {
+                                <span>No assignments</span>
                             }
                         </td>
                     </tr>
@@ -50,33 +56,47 @@ else
         </table>
     </div>
 }
+
 @code {
-    private List<Tasks> tasks = new();
-    private List<Employees> employees = new();
+    private List<Tasks>? tasks;
+    private Dictionary<int, List<Employees>> taskAssignments = new();
     private string? errorMessage;
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            var responseTasks = await Supabase
+    protected override async Task OnInitializedAsync(){
+        try{
+            var tasksResponse = await Supabase
                 .From<Tasks>()
-                .Select("*")
                 .Get();
-            var responseEmployees = await Supabase
-                .From<Employees>()
-                .Select("*")
-                .Get();
+            tasks = tasksResponse.Models;
 
-            if(responseTasks?.Models != null && responseEmployees?.Models != null)
-            {
-                tasks = responseTasks.Models;
-                employees = responseEmployees.Models;
+            if (tasks != null && tasks.Any()){
+                var taskIds = tasks.Select(t => t.Id).ToList();
+                var assignments = await Supabase.From<TaskAssignments>().Filter("task_id", Operator.In, taskIds).Get();
+
+                if (assignments?.Models != null){
+                    var employeeIds = assignments.Models.Select(a => a.EmployeeId).Distinct().ToList();
+                    var employees = await Supabase.From<Employees>().Filter("id", Operator.In, employeeIds).Get();
+
+                    if (employees?.Models != null){
+                        var employeeDict = employees.Models.ToDictionary(e => e.Id);
+                        foreach (var assignment in assignments.Models){
+                            if (!taskAssignments.ContainsKey(assignment.TaskId))
+                            {
+                                taskAssignments[assignment.TaskId] = new List<Employees>();
+                            }
+
+                            if (employeeDict.ContainsKey(assignment.EmployeeId))
+                            {
+                                taskAssignments[assignment.TaskId].Add(employeeDict[assignment.EmployeeId]);
+                            }
+                        }
+                    }
+                }
             }
         }
         catch (Exception ex)
         {
             errorMessage = ex.Message;
+            Console.WriteLine($"Error loading tasks: {ex.Message}");
         }
     }
 }

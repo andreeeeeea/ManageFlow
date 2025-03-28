@@ -20,7 +20,4 @@ public class Tasks : BaseModel
 
     [Column("deadline")]
     public DateTime? Deadline { get; set; }
-
-    [Column("assigned_employee_ids")]
-    public int[] AssignedEmployeeIds { get; set; } = Array.Empty<int>();
 }

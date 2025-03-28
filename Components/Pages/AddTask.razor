@@ -104,27 +104,25 @@
     
     private async Task SubmitTask()
     {
-        try 
-        {
-            task.AssignedEmployeeIds = selectedEmployeeIds.ToArray();
+        try{
+            var taskResponse = await Supabase.From<Tasks>().Insert(task);
+            var newTask = taskResponse.Models.FirstOrDefault();
+            if(newTask != null){
+                foreach (var employeeId in selectedEmployeeIds){
+                    await Supabase.From<TaskAssignments>().Insert(new TaskAssignments {
+                        TaskId = newTask.Id,
+                        EmployeeId = employeeId
+                        });
+                }
+                Console.WriteLine($"Created task '{newTask.Title}' with {newTask.Id} id");
+                Console.WriteLine($"Assigned task to employees: {string.Join(", ", selectedEmployeeIds)}");
 
-            var response = await Supabase.From<Tasks>()
-                .Insert(task);
-
-            var newTask = response.Models.FirstOrDefault();
-            if (newTask != null)
-            {
-                Console.WriteLine($"Created task '{task.Title}' with ID: {newTask.Id}");
-                Console.WriteLine($"Assigned employees: {string.Join(", ", task.AssignedEmployeeIds)}");
-                
-                task = new();
+                task = new () { Status = "Just Started" };
                 selectedEmployeeIds.Clear();
             }
-        } 
-        catch(Exception ex) 
-        {
-            errorMessage = ex.Message;
-            Console.WriteLine($"Error creating task: {ex.Message}");
+        } catch(Exception e){
+            errorMessage = e.Message;
+            Console.WriteLine($"Error creating task: {e.Message}");
         }
     }
 }
