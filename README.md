@@ -14,7 +14,6 @@ Don't want to overengineer this so early on, so I will visit the idea of making 
 #### 2. Add editing and deleting employees/tasks function
 
 Wouldn't be a proper CRUD project without this part, eh?
-#
 
 #### 3. When properly done with the backend somewhat, focus a bit on the frontend.
 
