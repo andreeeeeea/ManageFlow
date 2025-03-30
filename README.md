@@ -11,9 +11,9 @@ To Do List:
 For now, for simplicity sake, I will assume the users signing up will be the managers. They will manually add in their employees and whatnot. 
 Don't want to overengineer this so early on, so I will visit the idea of making it so that users can be either managers or employees later on.
 
-- Add editing and deleting employees/tasks function
+- ~~Add editing and deleting employees/tasks function~~
 
-Wouldn't be a proper CRUD project without this part, eh?
+~~Wouldn't be a proper CRUD project without this part, eh?~~ DONE! \o/
 
 - When properly done with the backend somewhat, focus a bit on the frontend. 
 
