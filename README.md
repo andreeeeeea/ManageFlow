@@ -1,4 +1,4 @@
-# EmployeeManager
+# ManageFlow
  A web application where users can track their employees and create and delegate tasks to them.
 
  Done mainly to experience first on making web app projects using C# and .NET (Blazor). Love it so far.
