@@ -141,6 +141,7 @@ else
                 .From<Tasks>()
                 .Get();
             tasks = tasksResponse.Models;
+            taskAssignments.Clear();
 
             if (tasks != null && tasks.Any()){
                 var taskIds = tasks.Select(t => t.Id).ToList();
@@ -183,54 +184,72 @@ else
     }
 
     private async Task EditTask(int taskId)
+{
+    try
     {
-        try {
-            var response = await Supabase.From<Tasks>().Where(x => x.Id == taskId).Get();
-            editingTask = response.Models.FirstOrDefault();
-            if (editingTask != null){
-                if (!employees.Any()){
-                    var responseEmployees = await Supabase.From<Employees>().Get();
-                    if (responseEmployees?.Models != null){
-                        employees = responseEmployees.Models;
-                    }
-                    selectedEmployeeIds.Clear();
-                    if (taskAssignments.ContainsKey(taskId)){
-                        selectedEmployeeIds = new List<int>(taskAssignments[taskId].Select(e => e.Id));
-                    }
-                }
-            }
-        }
-        catch (Exception e){
-            errorMessage = e.Message;
-            Console.WriteLine($"Error loading task for editing: {e.Message}");
-        }
-    }
-
-    private async Task SaveTask()
-    {
-        try {
-            await Supabase.From<Tasks>().Where(x => x.Id == editingTask.Id).Update(editingTask);
-            await Supabase.From<TaskAssignments>().Where(x => x.TaskId == editingTask.Id).Delete();
-            foreach (var employeeId in selectedEmployeeIds){
-                await Supabase.From<TaskAssignments>().Insert(new TaskAssignments {
-                    TaskId = editingTask.Id,
-                    EmployeeId = employeeId
-                });
-            }
-            if (taskAssignments.ContainsKey(editingTask.Id)){
-                taskAssignments[editingTask.Id] = employees.Where(e => selectedEmployeeIds.Contains(e.Id)).ToList();
-            }
-            else {
-                taskAssignments.Add(editingTask.Id, employees.Where(e => selectedEmployeeIds.Contains(e.Id)).ToList());
+        var response = await Supabase.From<Tasks>().Where(x => x.Id == taskId).Get();
+        editingTask = response.Models.FirstOrDefault();
+        
+        if (editingTask != null)
+        {
+            var responseEmployees = await Supabase.From<Employees>().Get();
+            if (responseEmployees?.Models != null)
+            {
+                employees = responseEmployees.Models;
             }
 
-            editingTask = null;
-        }
-        catch (Exception e){
-            errorMessage = e.Message;
-            Console.WriteLine($"Error saving task: {e.Message}");
+            var taskAssignmentsResponse = await Supabase.From<TaskAssignments>().Where(x => x.TaskId == taskId).Get();
+
+            selectedEmployeeIds = taskAssignmentsResponse.Models.Select(a => a.EmployeeId).ToList();
         }
     }
+    catch (Exception e)
+    {
+        errorMessage = e.Message;
+        Console.WriteLine($"Error loading task for editing: {e.Message}");
+    }
+}
+
+private async Task SaveTask()
+{
+    try
+    {
+        await Supabase.From<Tasks>().Where(x => x.Id == editingTask.Id).Update(editingTask);
+        await Supabase.From<TaskAssignments>().Where(x => x.TaskId == editingTask.Id).Delete();
+
+        foreach (var employeeId in selectedEmployeeIds)
+        {
+            await Supabase.From<TaskAssignments>().Insert(new TaskAssignments
+            {
+                TaskId = editingTask.Id,
+                EmployeeId = employeeId
+            });
+        }
+
+        var updatedAssignments = await Supabase.From<TaskAssignments>().Where(x => x.TaskId == editingTask.Id).Get();
+
+        if (taskAssignments.ContainsKey(editingTask.Id))
+        {
+            taskAssignments[editingTask.Id].Clear(); 
+        }
+        else
+        {
+            taskAssignments[editingTask.Id] = new List<Employees>();
+        }
+
+        taskAssignments[editingTask.Id] = employees.Where(e => updatedAssignments.Models.Select(a => a.EmployeeId).Contains(e.Id)).ToList();
+
+        editingTask = null;
+        selectedEmployeeIds.Clear();
+        StateHasChanged();
+        await OnInitializedAsync();
+    }
+    catch (Exception e)
+    {
+        errorMessage = e.Message;
+        Console.WriteLine($"Error saving task: {e.Message}");
+    }
+}
 
     private async Task CancelEdit()
     {
