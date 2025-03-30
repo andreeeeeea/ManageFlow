@@ -11,6 +11,39 @@
     <div class="alert alert-danger">@errorMessage</div>
 }
 
+@if (editingEmployee != null)
+{
+    <div class="card">
+        <div class="card-body">
+            <h4>Edit Employee</h4>
+            <EditForm Model="@editingEmployee" OnValidSubmit="@SaveEmployee">
+                <div class="mb-3">
+                    <label for="firstName">First Name</label>
+                    <InputText id="firstName" @bind-Value="editingEmployee.FirstName" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label for="lastName">Last Name</label>
+                    <InputText id="lastName" @bind-Value="editingEmployee.LastName" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label for="department">Department</label>
+                    <InputText id="department" @bind-Value="editingEmployee.Department" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label for="position">Position</label>
+                    <InputText id="position" @bind-Value="editingEmployee.Position" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label for="salary">Salary Per Annum</label>
+                    <InputNumber id="salary" @bind-Value="editingEmployee.Salary" class="form-control" />
+                </div>
+                <button type="submit" class="btn btn-primary">Update Employee</button>
+                <button type="button" class="btn btn-secondary" @onclick="() => editingEmployee = null">Cancel</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
 @if (employees == null)
 {
     <p>Loading...</p>
@@ -39,6 +72,8 @@ else
                         <td>@employee.Department</td>
                         <td>@employee.Position</td>
                         <td>@employee.Salary.ToString("C")</td>
+                        <button class="btn btn-primary" @onclick="() => EditEmployee(employee.Id)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteEmployee(employee.Id)">Delete</button>
                     </tr>
                 }
             </tbody>
@@ -48,6 +83,7 @@ else
 
 @code {
     private List<Employees> employees = new();
+    private Employees? editingEmployee;
     private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
@@ -62,13 +98,67 @@ else
             if (response?.Models != null)
             {
                 employees = response.Models;
-                Console.WriteLine($"Loaded {employees.Count} employees");
             }
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            errorMessage = ex.Message;
-            Console.WriteLine($"Error loading employees: {ex.Message}");
+            errorMessage = e.Message;
+            Console.WriteLine($"Error loading employees: {e.Message}");
+        }
+    }
+
+    private async Task EditEmployee(int employeeId)
+    {
+        try 
+        {
+            var response = await Supabase.From<Employees>().Where(x => x.Id == employeeId).Get();
+            editingEmployee = response.Models.FirstOrDefault();
+
+            if (editingEmployee != null)
+            {
+                await Supabase.From<Employees>().Where(x => x.Id == employeeId).Update(editingEmployee);
+                await OnInitializedAsync();
+                StateHasChanged();
+            }
+        }
+        catch (Exception e) 
+        {
+            errorMessage = e.Message;
+            Console.WriteLine($"Error editing employee: {e.Message}");
+        }
+    }
+
+    private async Task SaveEmployee()
+    {
+        try 
+        {
+            if (editingEmployee != null) 
+            {
+                await Supabase.From<Employees>().Where(x => x.Id == editingEmployee.Id).Update(editingEmployee);
+                editingEmployee = null;
+                StateHasChanged();
+                await OnInitializedAsync();
+            }
+        }
+        catch (Exception e) 
+        {
+            errorMessage = e.Message;
+            Console.WriteLine($"Error saving employee: {e.Message}");
+        }
+    }
+
+    private async Task DeleteEmployee(int employeeId)
+    {
+        try 
+        {
+            await Supabase.From<Employees>().Where(x => x.Id == employeeId).Delete();
+            await OnInitializedAsync();
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+            errorMessage = e.Message;
+            Console.WriteLine($"Error deleting employee: {e.Message}");
         }
     }
 }
