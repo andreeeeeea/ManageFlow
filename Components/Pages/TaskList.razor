@@ -11,6 +11,73 @@
     <div class="alert alert-danger">@errorMessage</div>
 }
 
+@if (editingTask != null)
+{
+    <div class="card">
+        <div class="card-body">
+            <h4>Edit Task</h4>
+            <EditForm Model="@editingTask" OnValidSubmit="@SaveTask">
+                <div class="mb-3">
+                    <label for="title">Title</label>
+                    <InputText id="title" @bind-Value="editingTask.Title" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="description">Description</label>
+                    <InputText id="description" @bind-Value="editingTask.Description" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="status">Status</label>
+                    <InputSelect id="status" @bind-Value="editingTask.Status" class="form-control">
+                        <option value="Just Started">Just Started</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                    </InputSelect>
+                </div>
+
+                <div class="mb-3">
+                    <label for="deadline">Deadline</label>
+                    <InputDate id="deadline" @bind-Value="editingTask.Deadline" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Assign Employees</label>
+                    @if (employees == null)
+                    {
+                        <p>Loading employees...</p>
+                    }
+                    else if (!employees.Any())
+                    {
+                        <p>No employees found</p>
+                    }
+                    else
+                    {
+                        <div class="list-group">
+                            @foreach (var employee in employees)
+                            {
+                                <div class="form-check">
+                                    <input type="checkbox" 
+                                        class="form-check-input" 
+                                        id="emp_@employee.Id"
+                                        checked="@selectedEmployeeIds.Contains(employee.Id)"
+                                        @onchange="@(e => ToggleEmployee(employee.Id))" />
+                                    <label class="form-check-label" for="emp_@employee.Id">
+                                        @employee.FirstName @employee.LastName - @employee.Department
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
 @if (tasks == null)
 {
     <p>Loading...</p>
@@ -50,6 +117,8 @@ else
                                 <span>No assignments</span>
                             }
                         </td>
+                        <button class="btn btn-primary" @onclick="() => EditTask(task.Id)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteTask(task.Id)">Delete</button>
                     </tr>
                 }
             </tbody>
@@ -59,10 +128,15 @@ else
 
 @code {
     private List<Tasks>? tasks;
+    private List<Employees> employees = new();
+    private List<int> selectedEmployeeIds = new();
     private Dictionary<int, List<Employees>> taskAssignments = new();
+    private Tasks? editingTask;
     private string? errorMessage;
-    protected override async Task OnInitializedAsync(){
-        try{
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
             var tasksResponse = await Supabase
                 .From<Tasks>()
                 .Get();
@@ -97,6 +171,84 @@ else
         {
             errorMessage = ex.Message;
             Console.WriteLine($"Error loading tasks: {ex.Message}");
+        }
+    }
+
+    private void ToggleEmployee(int employeeId)
+    {
+        if (selectedEmployeeIds.Contains(employeeId))
+            selectedEmployeeIds.Remove(employeeId);
+        else
+            selectedEmployeeIds.Add(employeeId);
+    }
+
+    private async Task EditTask(int taskId)
+    {
+        try {
+            var response = await Supabase.From<Tasks>().Where(x => x.Id == taskId).Get();
+            editingTask = response.Models.FirstOrDefault();
+            if (editingTask != null){
+                if (!employees.Any()){
+                    var responseEmployees = await Supabase.From<Employees>().Get();
+                    if (responseEmployees?.Models != null){
+                        employees = responseEmployees.Models;
+                    }
+                    selectedEmployeeIds.Clear();
+                    if (taskAssignments.ContainsKey(taskId)){
+                        selectedEmployeeIds = new List<int>(taskAssignments[taskId].Select(e => e.Id));
+                    }
+                }
+            }
+        }
+        catch (Exception e){
+            errorMessage = e.Message;
+            Console.WriteLine($"Error loading task for editing: {e.Message}");
+        }
+    }
+
+    private async Task SaveTask()
+    {
+        try {
+            await Supabase.From<Tasks>().Where(x => x.Id == editingTask.Id).Update(editingTask);
+            await Supabase.From<TaskAssignments>().Where(x => x.TaskId == editingTask.Id).Delete();
+            foreach (var employeeId in selectedEmployeeIds){
+                await Supabase.From<TaskAssignments>().Insert(new TaskAssignments {
+                    TaskId = editingTask.Id,
+                    EmployeeId = employeeId
+                });
+            }
+            if (taskAssignments.ContainsKey(editingTask.Id)){
+                taskAssignments[editingTask.Id] = employees.Where(e => selectedEmployeeIds.Contains(e.Id)).ToList();
+            }
+            else {
+                taskAssignments.Add(editingTask.Id, employees.Where(e => selectedEmployeeIds.Contains(e.Id)).ToList());
+            }
+
+            editingTask = null;
+        }
+        catch (Exception e){
+            errorMessage = e.Message;
+            Console.WriteLine($"Error saving task: {e.Message}");
+        }
+    }
+
+    private async Task CancelEdit()
+    {
+        editingTask = null;
+        selectedEmployeeIds.Clear();
+    }
+
+    private async Task DeleteTask(int taskId)
+    {
+        try {
+            await Supabase.From<Tasks>().Where(x => x.Id == taskId).Delete();
+            Console.WriteLine($"Task with ID {taskId} deleted successfully.");
+            await OnInitializedAsync();
+            StateHasChanged();
+        }
+        catch (Exception ex){
+            errorMessage = ex.Message;
+            Console.WriteLine($"Error deleting task: {ex.Message}");
         }
     }
 }
