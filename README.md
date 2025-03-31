@@ -1,7 +1,7 @@
 # ManageFlow
- A web application where users can track their employees and create and delegate tasks to them.
+ A C# and .NET web application where users can track their employees and create and delegate tasks to them.
 
- Done mainly to test making web app projects using C# and .NET (Blazor). Love it so far.
+ This project is actively being worked on.
 
 #
 
