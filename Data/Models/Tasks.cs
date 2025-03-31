@@ -20,4 +20,13 @@ public class Tasks : BaseModel
 
     [Column("deadline")]
     public DateTime? Deadline { get; set; }
+
+    [Column("created_by")]
+    public int CreatedBy { get; set; }
+
+    [Column("created_at")]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    [Column("updated_at")]
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

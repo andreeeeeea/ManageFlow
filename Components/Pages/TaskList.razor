@@ -137,9 +137,7 @@ else
     {
         try
         {
-            var tasksResponse = await Supabase
-                .From<Tasks>()
-                .Get();
+            var tasksResponse = await Supabase.From<Tasks>().Get();
             tasks = tasksResponse.Models;
             taskAssignments.Clear();
 
@@ -184,31 +182,31 @@ else
     }
 
     private async Task EditTask(int taskId)
-{
-    try
     {
-        var response = await Supabase.From<Tasks>().Where(x => x.Id == taskId).Get();
-        editingTask = response.Models.FirstOrDefault();
-        
-        if (editingTask != null)
+        try
         {
-            var responseEmployees = await Supabase.From<Employees>().Get();
-            if (responseEmployees?.Models != null)
+            var response = await Supabase.From<Tasks>().Where(x => x.Id == taskId).Get();
+            editingTask = response.Models.FirstOrDefault();
+            
+            if (editingTask != null)
             {
-                employees = responseEmployees.Models;
+                var responseEmployees = await Supabase.From<Employees>().Get();
+                if (responseEmployees?.Models != null)
+                {
+                    employees = responseEmployees.Models;
+                }
+
+                var taskAssignmentsResponse = await Supabase.From<TaskAssignments>().Where(x => x.TaskId == taskId).Get();
+
+                selectedEmployeeIds = taskAssignmentsResponse.Models.Select(a => a.EmployeeId).ToList();
             }
-
-            var taskAssignmentsResponse = await Supabase.From<TaskAssignments>().Where(x => x.TaskId == taskId).Get();
-
-            selectedEmployeeIds = taskAssignmentsResponse.Models.Select(a => a.EmployeeId).ToList();
+        }
+        catch (Exception e)
+        {
+            errorMessage = e.Message;
+            Console.WriteLine($"Error loading task for editing: {e.Message}");
         }
     }
-    catch (Exception e)
-    {
-        errorMessage = e.Message;
-        Console.WriteLine($"Error loading task for editing: {e.Message}");
-    }
-}
 
 private async Task SaveTask()
 {

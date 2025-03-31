@@ -1,6 +1,7 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
 @using EmployeeManager.Data.Models
-@using Supabase
+@attribute [AllowAnonymous]
 @inject Supabase.Client Supabase
 @rendermode InteractiveServer
 
@@ -8,27 +9,32 @@
 
 <h1>Hello, user!</h1>
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
 <div class="mb-3">
-    <h3> Currently, you have @employees.Count() employees and @tasks.Count() tasks.</h3>
+    <h3>Currently, you have @employees.Count() employees and @tasks.Count() tasks.</h3>
 </div>
-
-
 
 @code {
     private List<Employees> employees = new();
     private List<Tasks> tasks = new();
-
     private string? errorMessage;
 
-    protected override async Task OnInitializedAsync() {
-        try {
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
             var responseEmployees = await Supabase.From<Employees>().Get();
             employees = responseEmployees.Models;
 
             var responseTasks = await Supabase.From<Tasks>().Get();
             tasks = responseTasks.Models;
         }
-        catch (Exception e){
+        catch (Exception e)
+        {
             errorMessage = e.Message;
             Console.WriteLine($"Error loading data: {errorMessage}");
         }
