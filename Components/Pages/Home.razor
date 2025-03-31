@@ -1,6 +1,8 @@
 ﻿@page "/"
 @using EmployeeManager.Data.Models
-@inject Supabase.Client Supabase
+@using EmployeeManager.Services
+@inject IEmployeeService EmployeeService
+@inject ITaskManagerService TaskService
 @rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
@@ -25,11 +27,8 @@
     {
         try
         {
-            var responseEmployees = await Supabase.From<Employees>().Get();
-            employees = responseEmployees.Models;
-
-            var responseTasks = await Supabase.From<Tasks>().Get();
-            tasks = responseTasks.Models;
+            employees = await EmployeeService.GetEmployeesAsync();
+            tasks = await TaskService.GetTasksAsync();
         }
         catch (Exception e)
         {

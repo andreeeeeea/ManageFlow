@@ -1,13 +1,19 @@
 @page "/add-task"
 @using EmployeeManager.Data.Models
-@using static Supabase.Postgrest.Constants
-@inject Supabase.Client Supabase
+@using EmployeeManager.Services
+@inject ITaskManagerService TaskService
 @rendermode InteractiveServer
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
     <div class="alert alert-danger" role="alert">
         @errorMessage
+    </div>
+}
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success" role="alert">
+        @successMessage
     </div>
 }
 
@@ -63,24 +69,18 @@
 </EditForm>
 
 @code {
-    private Tasks task = new() {Status = "Just Started" };
+    private Tasks task = new() { Status = "Just Started" };
     private List<Employees> employees = new();
     private List<int> selectedEmployeeIds = new();
     private string? errorMessage;
+    private string? successMessage;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            var response = await Supabase.From<Employees>()
-                .Select("id, first_name, last_name, department")
-                .Get();
-            
-            if (response?.Models != null)
-            {
-                employees = response.Models;
-                Console.WriteLine($"Loaded {employees.Count} employees");
-            }
+            employees = await TaskService.GetEmployeesAsync();
+            Console.WriteLine($"Loaded {employees.Count} employees");
         }
         catch (Exception ex)
         {
@@ -91,7 +91,7 @@
 
     private void ToggleEmployee(int employeeId, bool isSelected)
     {
-        if(isSelected)
+        if (isSelected)
         {
             selectedEmployeeIds.Add(employeeId);
         }
@@ -104,23 +104,23 @@
     
     private async Task SubmitTask()
     {
-        try{
-            var taskResponse = await Supabase.From<Tasks>().Insert(task);
-            var newTask = taskResponse.Models.FirstOrDefault();
-            if(newTask != null){
-                foreach (var employeeId in selectedEmployeeIds){
-                    await Supabase.From<TaskAssignments>().Insert(new TaskAssignments {
-                        TaskId = newTask.Id,
-                        EmployeeId = employeeId
-                        });
-                }
+        try
+        {
+            var newTask = await TaskService.CreateTaskAsync(task);
+            if (newTask != null)
+            {
+                await TaskService.AssignEmployeesToTaskAsync(newTask.Id, selectedEmployeeIds);
+                
                 Console.WriteLine($"Created task '{newTask.Title}' with {newTask.Id} id");
                 Console.WriteLine($"Assigned task to employees: {string.Join(", ", selectedEmployeeIds)}");
 
-                task = new () { Status = "Just Started" };
+                task = new() { Status = "Just Started" };
                 selectedEmployeeIds.Clear();
+                successMessage = "Task created successfully!";
             }
-        } catch(Exception e){
+        }
+        catch (Exception e)
+        {
             errorMessage = e.Message;
             Console.WriteLine($"Error creating task: {e.Message}");
         }

@@ -1,0 +1,14 @@
+using EmployeeManager.Data.Models;
+
+namespace EmployeeManager.Services;
+
+public interface ITaskManagerService
+{
+    Task<List<Employees>> GetEmployeesAsync();
+    Task<Tasks> CreateTaskAsync(Tasks task);
+    Task AssignEmployeesToTaskAsync(int taskId, List<int> employeeIds);
+    Task<List<Tasks>> GetTasksAsync();
+    Task<Tasks> UpdateTaskAsync(Tasks task);
+    Task DeleteTaskAsync(int taskId);
+    Task<List<TaskAssignments>> GetTaskAssignmentsAsync(int taskId);
+}

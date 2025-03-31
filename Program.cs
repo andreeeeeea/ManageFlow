@@ -1,4 +1,5 @@
 using EmployeeManager.Components;
+using EmployeeManager.Services;
 using Supabase;
 
 namespace EmployeeManager;
@@ -19,6 +20,9 @@ public class Program
 
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
+
+        builder.Services.AddScoped<ITaskManagerService, TaskManagerService>();
+        builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
         var options = new SupabaseOptions
         {

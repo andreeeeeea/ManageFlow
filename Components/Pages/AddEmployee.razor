@@ -1,9 +1,21 @@
 @page "/add-employee"
 @using EmployeeManager.Data.Models
-@using Supabase
-@inject Client Supabase
+@using EmployeeManager.Services
+@inject IEmployeeService EmployeeService
 @rendermode InteractiveServer
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @errorMessage
+    </div>
+}
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success" role="alert">
+        @successMessage
+    </div>
+}
 
 <h3> Add New Employee</h3>
 
@@ -41,26 +53,24 @@
 @code {
     private Employees employee = new();
     private string? errorMessage;
+    private string? successMessage;
 
     private async Task SubmitEmployee()
     {
-        try {
-            var response = await Supabase.From<Employees>()
-                .Insert(new List<Employees> {
-                    new Employees {
-                        FirstName = employee.FirstName,
-                        LastName = employee.LastName,
-                        Department = employee.Department,
-                        Position = employee.Position,
-                        Salary = employee.Salary
-                    }
-                });
-
-            Console.WriteLine($"Response: {response.Content}");
-        } 
-        catch(Exception ex) {
+        try 
+        {
+            var newEmployee = await EmployeeService.CreateEmployeeAsync(employee);
+            if (newEmployee != null)
+            {
+                Console.WriteLine($"Created employee: {newEmployee.FirstName} {newEmployee.LastName}");
+                employee = new();
+                successMessage = "Employee created successfully!";
+            }
+        }
+        catch (Exception ex)
+        {
             errorMessage = ex.Message;
-            Console.WriteLine($"Full error: {ex}");
+            Console.WriteLine($"Error creating employee: {ex.Message}");
         }
     }
 }

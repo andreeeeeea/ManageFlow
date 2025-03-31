@@ -1,14 +1,22 @@
 @page "/employees" 
 @using EmployeeManager.Data.Models
-@using Supabase
-@inject Client Supabase
+@using EmployeeManager.Services
+@inject IEmployeeService EmployeeService
 @rendermode InteractiveServer
 
 <h3>Employees</h3>
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
-    <div class="alert alert-danger">@errorMessage</div>
+    <div class="alert alert-danger" role="alert">
+        @errorMessage
+    </div>
+}
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success" role="alert">
+        @successMessage
+    </div>
 }
 
 @if (editingEmployee != null)
@@ -85,20 +93,13 @@ else
     private List<Employees> employees = new();
     private Employees? editingEmployee;
     private string? errorMessage;
+    private string? successMessage;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            var response = await Supabase
-                .From<Employees>()
-                .Select("*")
-                .Get();
-
-            if (response?.Models != null)
-            {
-                employees = response.Models;
-            }
+            employees = await EmployeeService.GetEmployeesAsync();
         }
         catch (Exception e)
         {
@@ -111,15 +112,8 @@ else
     {
         try 
         {
-            var response = await Supabase.From<Employees>().Where(x => x.Id == employeeId).Get();
-            editingEmployee = response.Models.FirstOrDefault();
-
-            if (editingEmployee != null)
-            {
-                await Supabase.From<Employees>().Where(x => x.Id == employeeId).Update(editingEmployee);
-                await OnInitializedAsync();
-                StateHasChanged();
-            }
+            employees = await EmployeeService.GetEmployeesAsync();
+            editingEmployee = employees.FirstOrDefault(e => e.Id == employeeId);
         }
         catch (Exception e) 
         {
@@ -134,10 +128,11 @@ else
         {
             if (editingEmployee != null) 
             {
-                await Supabase.From<Employees>().Where(x => x.Id == editingEmployee.Id).Update(editingEmployee);
+                await EmployeeService.UpdateEmployeeAsync(editingEmployee);
+                employees = await EmployeeService.GetEmployeesAsync();
                 editingEmployee = null;
                 StateHasChanged();
-                await OnInitializedAsync();
+                successMessage = "Employee edited successfully!";
             }
         }
         catch (Exception e) 
@@ -151,9 +146,10 @@ else
     {
         try 
         {
-            await Supabase.From<Employees>().Where(x => x.Id == employeeId).Delete();
-            await OnInitializedAsync();
+            await EmployeeService.DeleteEmployeeAsync(employeeId);
+            employees = await EmployeeService.GetEmployeesAsync();
             StateHasChanged();
+            successMessage = "Employee deleted successfully!";
         }
         catch (Exception e)
         {
