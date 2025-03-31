@@ -2,7 +2,6 @@
  A C# and .NET web application where users can track their employees and create and delegate tasks to them.
 
  This project is actively being worked on.
-
 #
 
 To Do List: 
