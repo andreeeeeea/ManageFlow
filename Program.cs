@@ -1,9 +1,5 @@
 using EmployeeManager.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using Supabase;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 
 namespace EmployeeManager;
 
@@ -43,22 +39,6 @@ public class Program
             Console.WriteLine($"Failed to initialize Supabase client: {ex.Message}");
             throw;
         }
-
-        var bytes = Encoding.UTF8.GetBytes(builder.Configuration["Authentication:JwtSecret"]);
-
-        builder.Services.AddAuthorization();
-        builder.Services.AddAuthentication().AddJwtBearer(options => 
-        {
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(bytes),
-                ValidAudience = builder.Configuration["Authentication:ValidAudience"],
-                ValidIssuer = builder.Configuration["Authentication:ValidIssuer"]
-            };
-
-        });
-
         
         var app = builder.Build();
 
@@ -73,9 +53,8 @@ public class Program
         app.UseAntiforgery();
         app.MapStaticAssets();
         app.MapRazorComponents<App>()
-            .AddInteractiveServerRenderMode()
-            .RequireAuthorization();
-        
+            .AddInteractiveServerRenderMode();
+
         app.Run();
     }
 }

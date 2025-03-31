@@ -21,9 +21,6 @@ public class Tasks : BaseModel
     [Column("deadline")]
     public DateTime? Deadline { get; set; }
 
-    [Column("created_by")]
-    public int CreatedBy { get; set; }
-
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
