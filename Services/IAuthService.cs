@@ -8,4 +8,5 @@ public interface IAuthService
     Task<SignInResult> LoginAsync(LoginModel loginModel);
     Task LogoutAsync();
     Task<bool> IsAuthenticatedAsync();
+    Task<IdentityResult> SignUpAsync(SignupModel signupModel);
 }

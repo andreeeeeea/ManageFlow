@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using EmployeeManager.Components.Pages;
 
 namespace EmployeeManager.Data.Models;
 

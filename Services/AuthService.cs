@@ -41,4 +41,25 @@ public class AuthService : IAuthService
     {
         return (await _signInManager.Context.AuthenticateAsync()).Succeeded;
     }
+
+    public async Task<IdentityResult> SignUpAsync(SignupModel signupModel)
+    {
+        var user = new ApplicationUser 
+        {
+            UserName = signupModel.Username,
+            Email = signupModel.Email,
+            FirstName = signupModel.FirstName,
+            LastName = signupModel.LastName,
+            Role = signupModel.Role
+        };
+
+        var result = await _userManager.CreateAsync(user, signupModel.Password);
+        if (result.Succeeded)
+        {
+            await _userManager.AddToRoleAsync(user, signupModel.Role);
+            await _signInManager.SignInAsync(user, isPersistent: true);
+        }
+
+        return result;
+    }
 }

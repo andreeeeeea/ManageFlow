@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using EmployeeManager.Components.Pages;
 
 namespace EmployeeManager.Data.Models;
 
@@ -13,6 +14,11 @@ public class SignupModel
     [StringLength(50, ErrorMessage = "Last name cannot be longer than 50 characters")]
     [Display(Name = "Last Name")]
     public string LastName { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Username is required")]
+    [StringLength(50, ErrorMessage = "Username cannot be longer than 50 characters")]
+    [Display(Name = "Username")]
+    public string Username { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Email is required")]
     [EmailAddress(ErrorMessage = "Invalid email address")]
