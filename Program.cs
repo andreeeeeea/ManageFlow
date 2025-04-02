@@ -1,5 +1,9 @@
 using EmployeeManager.Components;
 using EmployeeManager.Services;
+using EmployeeManager.Data.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Supabase.Gotrue;
 using Supabase;
 
 namespace EmployeeManager;
@@ -21,8 +25,26 @@ public class Program
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
 
+        builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+        {
+            options.Password.RequireDigit = true;
+            options.Password.RequiredLength = 8;
+            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireLowercase = true;
+            options.SignIn.RequireConfirmedAccount = false;
+        }).AddDefaultTokenProviders();
+
         builder.Services.AddScoped<ITaskManagerService, TaskManagerService>();
         builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+        builder.Services.AddScoped<IAuthService, AuthService>();
+
+        builder.Services.ConfigureApplicationCookie(options =>
+        {
+            options.LoginPath = "/login";
+            options.LogoutPath = "/logout";
+            options.AccessDeniedPath = "/access-denied";
+        });
 
         var options = new SupabaseOptions
         {
@@ -56,6 +78,8 @@ public class Program
         app.UseHttpsRedirection();
         app.UseAntiforgery();
         app.MapStaticAssets();
+        app.UseAuthentication();
+        app.UseAuthorization();
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode();
 
