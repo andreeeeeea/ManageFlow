@@ -1,12 +1,27 @@
+using Microsoft.AspNetCore.Identity;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
 namespace EmployeeManager.Data.Models;
 
-[Table("employees")]
-public class Employees : BaseModel {
+[Table("users")]
+public class ApplicationUser : BaseModel
+{
     [PrimaryKey("id")]
-    public int Id { get; set; }
+    [Column("id")]
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+
+    [Column("username")]
+    public string UserName { get; set; } = string.Empty;
+
+    [Column("normalized_username")]
+    public string NormalizedUserName { get; set; } = string.Empty;
+
+    [Column("email")]
+    public string Email { get; set; } = string.Empty;
+
+    [Column("password_hash")]
+    public string PasswordHash { get; set; } = string.Empty;
 
     [Column("first_name")]
     public string FirstName { get; set; } = string.Empty;
@@ -14,12 +29,9 @@ public class Employees : BaseModel {
     [Column("last_name")]
     public string LastName { get; set; } = string.Empty;
 
-    [Column("department")]
-    public string Department { get; set; } = string.Empty;
+    [Column("role")]
+    public string Role { get; set; } = "Employee";
 
-    [Column("position")]
-    public string Position { get; set; } = string.Empty;
-
-    [Column("salary")]
-    public decimal Salary { get; set; }
+    [Column("created_at")]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

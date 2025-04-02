@@ -1,10 +1,12 @@
 using EmployeeManager.Components;
 using EmployeeManager.Services;
 using EmployeeManager.Data.Models;
+using EmployeeManager.Data.Stores;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Supabase.Gotrue;
 using Supabase;
+using EmployeeManager.Data;
 
 namespace EmployeeManager;
 
@@ -38,6 +40,8 @@ public class Program
         builder.Services.AddScoped<ITaskManagerService, TaskManagerService>();
         builder.Services.AddScoped<IEmployeeService, EmployeeService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<IUserStore<ApplicationUser>, SupabaseUserStore>();
+        builder.Services.AddScoped<IRoleStore<IdentityRole>, SupabaseRoleStore>();
 
         builder.Services.ConfigureApplicationCookie(options =>
         {

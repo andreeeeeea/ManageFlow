@@ -23,7 +23,7 @@
             <div class="card-body">
                 <h3 class="text-center">Login</h3>
 
-                <EditForm Model="@model" OnValidSubmit="HandleLogin" FormName="loginForm">
+                <EditForm Model="@model" OnValidSubmit="@HandleLogin" FormName="loginForm">
                     <DataAnnotationsValidator />
 
                     <div class="mb-3">
@@ -50,15 +50,23 @@
     private string? errorMessage;
     private async Task HandleLogin()
     {
-        var result = await AuthService.LoginAsync(model);
-        if (result.Succeeded)
+        try
         {
-            NavigationManager.NavigateTo("/");
+            var result = await AuthService.LoginAsync(model);
+            if (result.Succeeded)
+            {
+                NavigationManager.NavigateTo("/");
+            }
+            else 
+            {
+                errorMessage = "Invalid password or email. Please try again.";
+                Console.WriteLine("Invalid login attempt");
+            }
         }
-        else 
+        catch (Exception e)
         {
-            errorMessage = "Invalid password or email. Please try again.";
-            Console.WriteLine("Invalid login attempt");
+            errorMessage = e.Message;
+            Console.WriteLine($"Login error: {e.Message}");
         }
     }
 }

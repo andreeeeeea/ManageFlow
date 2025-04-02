@@ -41,6 +41,12 @@
                     </div>
 
                     <div class="mb-3">
+                        <label>Username</label>
+                        <InputText @bind-Value="signupModel.Username" class="form-control" />
+                        <ValidationMessage For="@(() => signupModel.Username)" />
+                    </div>
+
+                    <div class="mb-3">
                         <label>Email</label>
                         <InputText @bind-Value="signupModel.Email" class="form-control" />
                         <ValidationMessage For="@(() => signupModel.Email)" />
@@ -91,8 +97,8 @@
             }
             else 
             {
-                errorMessage = "Could not sign up. Please try again";
-                Console.WriteLine("Invalid sign up attempt");
+                errorMessage = string.Join(" ", result.Errors.Select(e => e.Description));
+                Console.WriteLine($"Sign up errors: {errorMessage}");
             }
         }
         catch (Exception e)
