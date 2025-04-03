@@ -41,7 +41,6 @@ public class Program
         builder.Services.AddScoped<IEmployeeService, EmployeeService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<IUserStore<ApplicationUser>, SupabaseUserStore>();
-        builder.Services.AddScoped<IRoleStore<IdentityRole>, SupabaseRoleStore>();
 
         builder.Services.ConfigureApplicationCookie(options =>
         {

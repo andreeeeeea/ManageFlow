@@ -20,6 +20,12 @@ public class ApplicationUser : BaseModel
     [Column("email")]
     public string Email { get; set; } = string.Empty;
 
+    [Column("normalized_email")]
+    public string NormalizedEmail { get; set; } = string.Empty;
+
+    [Column("email_confirmed")]
+    public bool EmailConfirmed { get; set; }
+
     [Column("password_hash")]
     public string PasswordHash { get; set; } = string.Empty;
 
