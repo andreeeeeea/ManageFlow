@@ -1,7 +1,7 @@
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
-namespace EmployeeManager.Data.Models;
+namespace ManageFlow.Data.Models;
 
 [Table("task_assignments")]
 public class TaskAssignments : BaseModel {

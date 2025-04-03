@@ -1,6 +1,6 @@
-using EmployeeManager.Data.Models;
+using ManageFlow.Data.Models;
 
-namespace EmployeeManager.Services;
+namespace ManageFlow.Services;
 
 public interface IEmployeeService
 {

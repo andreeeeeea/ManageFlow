@@ -5,13 +5,9 @@
 
 <h1>Counter</h1>
 
-<p role="status">Current count: @currentCount </p>
+<p role="status">Current count: @currentCount</p>
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
-
-@if (currentCount > 5) {
-    <p> Current count bigger than 5!</p>
-}
 
 @code {
     private int currentCount = 0;

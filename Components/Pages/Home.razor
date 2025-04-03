@@ -1,39 +1,7 @@
 ﻿@page "/"
-@using EmployeeManager.Data.Models
-@using EmployeeManager.Services
-@inject IEmployeeService EmployeeService
-@inject ITaskManagerService TaskService
-@rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, user!</h1>
+<h1>Hello, world!</h1>
 
-@if (!string.IsNullOrEmpty(errorMessage))
-{
-    <div class="alert alert-danger">@errorMessage</div>
-}
-
-<div class="mb-3">
-    <h3>Currently, you have @employees.Count() employees and @tasks.Count() tasks.</h3>
-</div>
-
-@code {
-    private List<Employees> employees = new();
-    private List<Tasks> tasks = new();
-    private string? errorMessage;
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            employees = await EmployeeService.GetEmployeesAsync();
-            tasks = await TaskService.GetTasksAsync();
-        }
-        catch (Exception e)
-        {
-            errorMessage = e.Message;
-            Console.WriteLine($"Error loading data: {errorMessage}");
-        }
-    }
-}
+Welcome to your new app.
