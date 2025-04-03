@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using ManageFlow.Components;
 using ManageFlow.Components.Account;
 using ManageFlow.Data;
+using ManageFlow.Data.Models;
 using ManageFlow.Services;
-using Supabase;
 
 namespace ManageFlow;
 
@@ -15,34 +15,8 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        var url = builder.Configuration["Supabase:Url"];
-        var key = builder.Configuration["Supabase:Key"];
-
-        if (string.IsNullOrEmpty(url) || string.IsNullOrEmpty(key))
-        {
-            throw new Exception("Supabase URL or Key not found in configuration");
-        }
-
         builder.Services.AddScoped<ITaskManagerService, TaskManagerService>();
         builder.Services.AddScoped<IEmployeeService, EmployeeService>();
-
-        var options = new SupabaseOptions
-        {
-            AutoConnectRealtime = true
-        };
-
-        try
-        {
-            var supabase = new Supabase.Client(url, key, options);
-            await supabase.InitializeAsync();
-            Console.WriteLine("Supabase client initialized successfully");
-            builder.Services.AddSingleton(supabase);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Failed to initialize Supabase client: {ex.Message}");
-            throw;
-        }
 
         // Add services to the container.
         builder.Services.AddRazorComponents()
@@ -55,11 +29,18 @@ public class Program
 
         // Register Identity with Entity Framework and use Supabase as the database
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(builder.Configuration["Supabase:ConnectionString"]));
+            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-        builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-            .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddDefaultTokenProviders();
+        builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+        {
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequiredLength = 8;
+            options.Password.RequireNonAlphanumeric = false;
+        })
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
 
         // If you are not using an email sender in production, you can configure it here as below:
         builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
