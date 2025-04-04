@@ -1,36 +1,58 @@
+using Microsoft.EntityFrameworkCore;
 using ManageFlow.Data.Models;
+using ManageFlow.Data;
 
-namespace ManageFlow.Services;
-
-public class EmployeeService : IEmployeeService
+namespace ManageFlow.Services
 {
-    private readonly Supabase.Client _supabase;
-
-    public EmployeeService(Supabase.Client supabase)
+    public class EmployeeService : IEmployeeService
     {
-        _supabase = supabase;
-    }
+        private readonly ApplicationDbContext _context;
 
-    public async Task<List<Employees>> GetEmployeesAsync()
-    {
-        var response = await _supabase.From<Employees>().Get();
-        return response?.Models ?? new List<Employees>();
-    }
+        public EmployeeService(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
-    public async Task<Employees> CreateEmployeeAsync(Employees employee)
-    {
-        var response = await _supabase.From<Employees>().Insert(employee);
-        return response.Models.FirstOrDefault();
-    }
+        public async Task<List<Employees>> GetEmployeesAsync()
+        {
+            return await _context.Employees.ToListAsync();
+        }
 
-    public async Task<Employees> UpdateEmployeeAsync(Employees employee)
-    {
-        var response = await _supabase.From<Employees>().Where(x => x.Id == employee.Id).Update(employee);
-        return response.Models.FirstOrDefault();
-    }
+        public async Task<Employees> CreateEmployeeAsync(Employees employee)
+        {
+            _context.Employees.Add(employee);
+            await _context.SaveChangesAsync();
+            return employee;
+        }
 
-    public async Task DeleteEmployeeAsync(int employeeId)
-    {
-        await _supabase.From<Employees>().Where(x => x.Id == employeeId).Delete();
+        public async Task<Employees> UpdateEmployeeAsync(Employees employee)
+        {
+            var existingEmployee = await _context.Employees.FirstOrDefaultAsync(e => e.Id == employee.Id);
+
+            if (existingEmployee != null)
+            {
+                existingEmployee.FirstName = employee.FirstName;
+                existingEmployee.LastName = employee.LastName;
+                existingEmployee.Department = employee.Department;
+                existingEmployee.Position = employee.Position;
+                existingEmployee.Salary = employee.Salary;
+
+                await _context.SaveChangesAsync();
+                return existingEmployee;
+            }
+
+            return null;
+        }
+
+        public async Task DeleteEmployeeAsync(int employeeId)
+        {
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Id == employeeId);
+
+            if (employee != null)
+            {
+                _context.Employees.Remove(employee);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

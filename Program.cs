@@ -27,9 +27,8 @@ public class Program
         builder.Services.AddScoped<IdentityRedirectManager>();
         builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
-        // Register Identity with Entity Framework and use Supabase as the database
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlite($"Data Source={Path.Combine(Directory.GetCurrentDirectory(), "Data", "app.db")}"));
 
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {

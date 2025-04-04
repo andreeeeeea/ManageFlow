@@ -1,61 +1,82 @@
 using ManageFlow.Data.Models;
+using Microsoft.EntityFrameworkCore;
+using ManageFlow.Data;
+using ManageFlow.Data.Models;
 
 namespace ManageFlow.Services;
 
 public class TaskManagerService : ITaskManagerService
 {
-    private readonly Supabase.Client _supabase;
+    private readonly ApplicationDbContext _context;
 
-    public TaskManagerService(Supabase.Client supabase)
+    public TaskManagerService(ApplicationDbContext context)
     {
-        _supabase = supabase;
+        _context = context;
     }
 
     public async Task<List<Employees>> GetEmployeesAsync()
     {
-        var response = await _supabase.From<Employees>().Select("id, first_name, last_name, department").Get();
-        return response?.Models ?? new List<Employees>();
+        return await _context.Employees
+            .Select(e => new Employees
+            {
+                Id = e.Id,
+                FirstName = e.FirstName,
+                LastName = e.LastName,
+                Department = e.Department
+            })
+            .ToListAsync();
     }
 
     public async Task<Tasks> CreateTaskAsync(Tasks task)
     {
-        var response = await _supabase.From<Tasks>().Insert(task);
-        return response.Models.FirstOrDefault();
+        _context.Tasks.Add(task);
+        await _context.SaveChangesAsync();
+        return task;
     }
 
     public async Task AssignEmployeesToTaskAsync(int taskId, List<int> employeeIds)
     {
-        await _supabase.From<TaskAssignments>().Where(x => x.TaskId == taskId).Delete();
+        var existingAssignments = await _context.TaskAssignments.Where(x => x.TaskId == taskId).ToListAsync();
+
+        _context.TaskAssignments.RemoveRange(existingAssignments);
+        
         foreach (var employeeId in employeeIds)
         {
-            await _supabase.From<TaskAssignments>().Insert(new TaskAssignments
+            var taskAssignment = new TaskAssignments
             {
                 TaskId = taskId,
                 EmployeeId = employeeId
-            });
+            };
+            _context.TaskAssignments.Add(taskAssignment);
         }
+
+        await _context.SaveChangesAsync();
     }
 
     public async Task<List<Tasks>> GetTasksAsync()
     {
-        var response = await _supabase.From<Tasks>().Get();
-        return response?.Models ?? new List<Tasks>();
+        return await _context.Tasks.ToListAsync();
     }
 
     public async Task<Tasks> UpdateTaskAsync(Tasks task)
     {
-        var response = await _supabase.From<Tasks>().Where(x => x.Id == task.Id).Update(task);
-        return response.Models.FirstOrDefault();
+        _context.Tasks.Update(task);
+        await _context.SaveChangesAsync();
+        return task;
     }
 
     public async Task DeleteTaskAsync(int taskId)
     {
-        await _supabase.From<Tasks>().Where(x => x.Id == taskId).Delete();
+        var task = await _context.Tasks.FindAsync(taskId);
+        if (task != null)
+        {
+            _context.Tasks.Remove(task);
+            await _context.SaveChangesAsync();
+        }
     }
 
     public async Task<List<TaskAssignments>> GetTaskAssignmentsAsync(int taskId)
     {
-        var response = await _supabase.From<TaskAssignments>().Where(x => x.TaskId == taskId).Get();
-        return response?.Models ?? new List<TaskAssignments>();
+        return await _context.TaskAssignments.Where(x => x.TaskId == taskId).ToListAsync();
     }
 }
