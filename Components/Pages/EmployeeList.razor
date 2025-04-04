@@ -34,6 +34,10 @@
                     <InputText id="lastName" @bind-Value="editingEmployee.LastName" class="form-control" />
                 </div>
                 <div class="mb-3">
+                    <label for="email">Email</label>
+                    <InputText id="email" @bind-Value="editingEmployee.Email" class="form-control" />
+                </div>
+                <div class="mb-3">
                     <label for="department">Department</label>
                     <InputText id="department" @bind-Value="editingEmployee.Department" class="form-control" />
                 </div>
@@ -67,6 +71,7 @@ else
             <thead>
                 <tr>
                     <th>Name</th>
+                    <th>Email</th>
                     <th>Department</th>
                     <th>Position</th>
                     <th>Salary Per Year</th>
@@ -77,6 +82,7 @@ else
                 {
                     <tr>
                         <td>@employee.FirstName @employee.LastName</td>
+                        <td>@employee.Email</td>
                         <td>@employee.Department</td>
                         <td>@employee.Position</td>
                         <td>@employee.Salary.ToString("C")</td>

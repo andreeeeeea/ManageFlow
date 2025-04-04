@@ -34,6 +34,13 @@ namespace ManageFlow.Data
                 .WithMany(e => e.TaskAssignments)
                 .HasForeignKey(ta => ta.EmployeeId)
                 .OnDelete(DeleteBehavior.Cascade); 
+
+            builder.Entity<Employees>()
+                .HasOne(e => e.User)  
+                .WithOne()
+                .HasForeignKey<Employees>(e => e.UserId)
+                .IsRequired(false); 
+
         }
     }
 }
