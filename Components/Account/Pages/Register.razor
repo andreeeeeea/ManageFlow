@@ -105,8 +105,6 @@
             return;
         }
 
-        var employeeRecord = await _db.Employees.FirstOrDefaultAsync(e => e.Email == Input.Email);
-
         Logger.LogInformation("User created a new account with password.");
 
         var userId = await UserManager.GetUserIdAsync(user);
@@ -123,6 +121,14 @@
             RedirectManager.RedirectTo(
                 "Account/RegisterConfirmation",
                 new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
+        }
+
+                var employeeRecord = await _db.Employees.FirstOrDefaultAsync(e => e.Email == Input.Email);
+
+        if (employeeRecord != null)
+        {
+            employeeRecord.UserId = user.Id;
+            await _db.SaveChangesAsync();
         }
 
         await SignInManager.SignInAsync(user, isPersistent: false);
@@ -182,6 +188,8 @@
         [StringLength(10)]
         [Display(Name = "Role")]
         public string Role { get; set; } = "";
+
+
     }
 }
 
