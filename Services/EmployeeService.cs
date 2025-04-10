@@ -18,6 +18,12 @@ namespace ManageFlow.Services
             return await _context.Employees.ToListAsync();
         }
 
+        public async Task<Dictionary<string, int>> GetEmployeeRolesCountAsync()
+        {
+            return await _context.Employees.GroupBy(e => e.Department).ToDictionaryAsync(g => g.Key, g => g.Count());
+        }
+        
+
         public async Task<Employees> CreateEmployeeAsync(Employees employee)
         {
             _context.Employees.Add(employee);

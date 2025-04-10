@@ -1,19 +1,41 @@
 @page "/dashboard"
+@using ManageFlow.Data.Models
+@using ManageFlow.Services
 @using Microsoft.AspNetCore.Authorization
+@inject ITaskManagerService TaskService
+@inject IEmployeeService EmployeeService
 @attribute [Authorize]
 
 <AuthorizeView>
     <Authorized>
-        <div class="text-center">
-            <h1 class="display-4">Welcome, @context.User.Identity?.Name! </h1>
-            <p>This is your dashboard page.</p>
+        <p class="text-start fs-4 fw-bold mt-4">Welcome, @context.User.Identity?.Name! </p>
+        <div class="row mb-4 mt-5 justify-content-center"> 
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card card-sleek card-sleek-purple text-black h-50 w-100">
+                    <div class="card-body text-start">
+                        <p class="card-text fs-6">New Tasks This Week</p>
+                        <p class="card-text fw-bold fs-1 mt-5">@latestTasks</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card card-sleek card-sleek-purple text-black h-50 w-100">
+                    <div class="card-body text-start">
+                        <p class="card-text fs-6">Completed Tasks</p>
+                        <p class="card-text fw-bold fs-1 mt-5">@completedTasks</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card card-sleek card-sleek-purple text-black h-50 w-100">
+                    <div class="card-body text-start">
+                        <p class="card-text fs-6">Employees</p>
+                        <p class="card-text fw-bold fs-1 mt-5">@employees </p>
+                    </div>
+                </div>
+            </div>
         </div>
     </Authorized>
-
-
-
-
-    
     <NotAuthorized>
         <div class="text-center">
             <h1 class="display-4">Access Denied</h1>
@@ -21,5 +43,50 @@
         </div>
     </NotAuthorized>
 </AuthorizeView>
+<!-- #region  rgba(161, 200, 245, 0.5);-->
 
+<style>
+    .card-sleek {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        aspect-ratio: 1;
+        width: 100%;
+        border-radius: 20px;
+        transition: transform 0.3s ease-in-out;
+        box-shadow: 0 1px 8px rgba(0, 0, 0, 0.2);
+        font-family: 'Inter', sans-serif;
+        overflow: hidden;
+    }
+    .card-sleek-purple {
+    background: linear-gradient(150deg, rgba(255, 255, 255, 0), rgba(187, 207, 230, 0.432)); 
+    }
+</style>
+
+@code {
+    private string errorMessage;
+
+    int tasks, latestTasks, completedTasks;
+    int employees;
+    Dictionary<string, int> employeesByDepartment = new Dictionary<string, int>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            tasks = (await TaskService.GetTasksAsync()).Count;
+            latestTasks = (await TaskService.GetLatestTasksAsync()).Count;
+            completedTasks = (await TaskService.GetCompletedTasksAsync()).Count;
+            employees = (await EmployeeService.GetEmployeesAsync()).Count;
+            employeesByDepartment = await EmployeeService.GetEmployeeRolesCountAsync();
+        }
+        catch (Exception e)
+        {
+            errorMessage = e.Message;
+            Console.WriteLine($"Error loading dashboard data: {e.Message}");
+        }
+    }
+
+    
+}
 

@@ -57,6 +57,16 @@ public class TaskManagerService : ITaskManagerService
         return await _context.Tasks.ToListAsync();
     }
 
+    public async Task<List<Tasks>> GetLatestTasksAsync()
+    {
+        return await _context.Tasks.Where(task => task.CreatedAt >= DateTime.Now.AddDays(-7)).ToListAsync();
+    }
+
+    public async Task<List<Tasks>> GetCompletedTasksAsync()
+    {
+        return await _context.Tasks.Where(task => task.Status == "Completed").ToListAsync();
+    }
+
     public async Task<Tasks> UpdateTaskAsync(Tasks task)
     {
         _context.Tasks.Update(task);
