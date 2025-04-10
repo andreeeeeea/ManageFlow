@@ -96,3 +96,19 @@ main {
         right: 0.75rem;
         top: 0.5rem;
     }
+
+.add-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background-color:rgb(5, 39, 103);
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.add-button:hover {
+    background-color: #3a0647;
+}

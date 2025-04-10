@@ -1,7 +1,6 @@
 using ManageFlow.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using ManageFlow.Data;
-using ManageFlow.Data.Models;
 
 namespace ManageFlow.Services;
 
