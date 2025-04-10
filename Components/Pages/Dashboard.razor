@@ -12,25 +12,26 @@
         <div class="row mb-4 mt-5 justify-content-center"> 
             <div class="col-md-3 col-sm-6 mb-3">
                 <div class="card card-sleek card-sleek-purple text-black h-50 w-100">
-                    <div class="card-body text-start">
-                        <p class="card-text fs-6">New Tasks This Week</p>
-                        <p class="card-text fw-bold fs-1 mt-5">@latestTasks</p>
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <p class="card-text fs-6 card-title">New Tasks This Week</p>
+                        <p class="card-text fw-bold fs-1 card-number">@latestTasks</p> 
+                        <p class="card-text fs-6 card-increase position-absolute bottom-0 mb-2">+ @taskIncrease% since last week</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-3 col-sm-6 mb-3">
                 <div class="card card-sleek card-sleek-purple text-black h-50 w-100">
-                    <div class="card-body text-start">
-                        <p class="card-text fs-6">Completed Tasks</p>
-                        <p class="card-text fw-bold fs-1 mt-5">@completedTasks</p>
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <p class="card-text fs-6 card-title">Completed Tasks</p>
+                        <p class="card-text fw-bold fs-1 card-number">@completedTasks</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-3 col-sm-6 mb-3">
                 <div class="card card-sleek card-sleek-purple text-black h-50 w-100">
-                    <div class="card-body text-start">
-                        <p class="card-text fs-6">Employees</p>
-                        <p class="card-text fw-bold fs-1 mt-5">@employees </p>
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <p class="card-text fs-6 card-title">Employees</p>
+                        <p class="card-text fw-bold fs-1 card-number">@employees</p>
                     </div>
                 </div>
             </div>
@@ -43,7 +44,6 @@
         </div>
     </NotAuthorized>
 </AuthorizeView>
-<!-- #region  rgba(161, 200, 245, 0.5);-->
 
 <style>
     .card-sleek {
@@ -59,15 +59,51 @@
         overflow: hidden;
     }
     .card-sleek-purple {
-    background: linear-gradient(150deg, rgba(255, 255, 255, 0), rgba(187, 207, 230, 0.432)); 
+        background: linear-gradient(150deg, rgba(255, 255, 255, 0), rgba(187, 207, 230, 0.432)); 
+    }
+    
+    .card-title {
+        font-size: 1.1rem;
+    }
+
+    .card-number {
+        font-size: 2rem;
+    }
+
+    .card-increase {
+        font-size: 1rem;
+    }
+
+    @@media (max-width: 768px) {
+        .card-title {
+            font-size: 1rem;
+        }
+        .card-number {
+            font-size: 1.5rem; 
+        }
+        .card-increase {
+            font-size: 0.9rem; 
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .card-title {
+            font-size: 0.9rem; 
+        }
+        .card-number {
+            font-size: 1.2rem; 
+        }
+        .card-increase {
+            font-size: 0.8rem; 
+        }
     }
 </style>
 
 @code {
     private string errorMessage;
-
-    int tasks, latestTasks, completedTasks;
+    int tasks, latestTasks, completedTasks, previousTasks;
     int employees;
+    int taskIncrease;
     Dictionary<string, int> employeesByDepartment = new Dictionary<string, int>();
 
     protected override async Task OnInitializedAsync()
@@ -77,8 +113,18 @@
             tasks = (await TaskService.GetTasksAsync()).Count;
             latestTasks = (await TaskService.GetLatestTasksAsync()).Count;
             completedTasks = (await TaskService.GetCompletedTasksAsync()).Count;
+            previousTasks = (await TaskService.GetPreviousWeekTasksAsync()).Count;
             employees = (await EmployeeService.GetEmployeesAsync()).Count;
             employeesByDepartment = await EmployeeService.GetEmployeeRolesCountAsync();
+
+            if (previousTasks == 0)
+            {
+                taskIncrease = 100;
+            }
+            else 
+            {
+                taskIncrease = ((latestTasks - previousTasks) / previousTasks) * 100;
+            }
         }
         catch (Exception e)
         {
@@ -86,7 +132,4 @@
             Console.WriteLine($"Error loading dashboard data: {e.Message}");
         }
     }
-
-    
 }
-

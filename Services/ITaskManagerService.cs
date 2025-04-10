@@ -10,6 +10,7 @@ public interface ITaskManagerService
     Task<List<Tasks>> GetTasksAsync();
     Task<List<Tasks>> GetLatestTasksAsync();
     Task<List<Tasks>> GetCompletedTasksAsync();
+    Task<List<Tasks>> GetPreviousWeekTasksAsync();
     Task<Tasks> UpdateTaskAsync(Tasks task);
     Task DeleteTaskAsync(int taskId);
     Task<List<TaskAssignments>> GetTaskAssignmentsAsync(int taskId);

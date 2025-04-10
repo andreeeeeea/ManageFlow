@@ -1,6 +1,8 @@
 using ManageFlow.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using ManageFlow.Data;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ManageFlow.Services;
 
@@ -60,6 +62,16 @@ public class TaskManagerService : ITaskManagerService
     public async Task<List<Tasks>> GetLatestTasksAsync()
     {
         return await _context.Tasks.Where(task => task.CreatedAt >= DateTime.Now.AddDays(-7)).ToListAsync();
+    }
+
+    public async Task<List<Tasks>> GetPreviousWeekTasksAsync()
+    {
+        var currDate = DateTime.Now;
+        var startOfCurrWeek = currDate.AddDays(-(int)currDate.DayOfWeek);
+        var startOfPrevWeek = startOfCurrWeek.AddDays(-7);
+        var endOfPrevWeek = startOfCurrWeek.AddDays(-1);
+
+        return await _context.Tasks.Where(task => task.CreatedAt >= startOfPrevWeek && task.CreatedAt <= endOfPrevWeek).ToListAsync();
     }
 
     public async Task<List<Tasks>> GetCompletedTasksAsync()
