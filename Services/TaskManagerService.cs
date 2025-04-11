@@ -79,6 +79,30 @@ public class TaskManagerService : ITaskManagerService
         return await _context.Tasks.Where(task => task.Status == "Completed").ToListAsync();
     }
 
+    public async Task<List<Tasks>> GetInProgressTasksAsync()
+    {
+        return await _context.Tasks.Where(task => task.Status == "In Progress").ToListAsync();
+    }
+    public async Task<List<Tasks>> GetNotStartedTasksAsync()
+    {
+        return await _context.Tasks.Where(task => task.Status == "Not Started").ToListAsync();
+    }
+    public async Task<List<Tasks>> GetTodayTasksAsync()
+    {
+        var today = DateTime.Today;
+        return await _context.Tasks.Where(task => task.Deadline == today).ToListAsync();
+    }
+    public async Task<List<Tasks>> GetTomorrowTasksAsync()
+    {
+        var tomorrow = DateTime.Today.AddDays(1);
+        return await _context.Tasks.Where(task => task.Deadline == tomorrow).ToListAsync();
+    }
+    public async Task<List<Tasks>> GetOverdueTasksAsync()
+    {
+        var today = DateTime.Today;
+        return await _context.Tasks.Where(task => task.Deadline < today && task.Status != "Completed").ToListAsync();
+    }
+
     public async Task<Tasks> UpdateTaskAsync(Tasks task)
     {
         _context.Tasks.Update(task);
