@@ -1,4 +1,6 @@
 @inject IJSRuntime JS
+@using ManageFlow.Components.Forms
+@rendermode InteractiveServer
 
 <div class="global-actions">
     <button class="action-button" @onclick="ShowAddEmployee">
@@ -57,11 +59,13 @@
     {
         showEmployeeForm = true;
         showTaskForm = false;
+        StateHasChanged();
     }
 
     private void ShowAddTask()
     {
         showTaskForm = true;
         showEmployeeForm = false;
+        StateHasChanged();
     }
 }
