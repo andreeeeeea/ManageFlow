@@ -1,0 +1,67 @@
+@inject IJSRuntime JS
+
+<div class="global-actions">
+    <button class="action-button" @onclick="ShowAddEmployee">
+        <i class="bi bi-person-plus"></i>
+        Add Employee
+    </button>
+    <button class="action-button" @onclick="ShowAddTask">
+        <i class="bi bi-plus-square"></i>
+        Add Task
+    </button>
+</div>
+
+@if (showEmployeeForm)
+{
+    <AddEmployeeForm OnClose="@(() => showEmployeeForm = false)" />
+}
+
+@if (showTaskForm)
+{
+    <AddTaskForm OnClose="@(() => showTaskForm = false)" />
+}
+
+<style>
+    .global-actions {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .action-button {
+        padding: 10px 20px;
+        background-color: rgb(5, 39, 103);
+        color: white;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 4px;
+    }
+
+    .action-button:hover {
+        background-color: #3a0647;
+    }
+</style>
+
+@code {
+    private bool showEmployeeForm;
+    private bool showTaskForm;
+
+    private void ShowAddEmployee()
+    {
+        showEmployeeForm = true;
+        showTaskForm = false;
+    }
+
+    private void ShowAddTask()
+    {
+        showTaskForm = true;
+        showEmployeeForm = false;
+    }
+}
