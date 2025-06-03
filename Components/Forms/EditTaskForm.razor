@@ -1,14 +1,16 @@
 @using ManageFlow.Data.Models
 @using ManageFlow.Services
+
 @inject ITaskManagerService TaskService
+@inject IEmployeeService EmployeeService
 @rendermode InteractiveServer
 
 <div class="modal-overlay">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Add New Task</h3>
-                <button type="button" class="btn-close" @onclick="OnClose"></button>
+                <h3 class="modal-title">Edit Task</h3>
+                <button type="button" class="btn-close" @onclick="CancelEdit"></button>
             </div>
 
             <div class="modal-body">
@@ -25,25 +27,32 @@
                     </div>
                 }
 
-                <EditForm Model="@task" OnValidSubmit="@SubmitTask">
-                    <DataAnnotationsValidator />
-
+                <EditForm Model="@editingTask" OnValidSubmit="@SaveTask">
                     <div class="mb-3">
-                        <label for="title"> Title</label>
-                        <InputText id="title" @bind-Value="task.Title" class="form-control" />
+                        <label for="title">Title</label>
+                        <InputText id="title" @bind-Value="editingTask.Title" class="form-control" />
                     </div>
 
                     <div class="mb-3">
-                        <label for="=description"> Description</label>
-                        <InputText id="description" @bind-Value="task.Description" class="form-control" />
+                        <label for="description">Description</label>
+                        <InputText id="description" @bind-Value="editingTask.Description" class="form-control" />
                     </div>
 
                     <div class="mb-3">
-                        <label for="deadline"> Deadline</label>
-                        <InputDate id="deadline" @bind-Value="task.Deadline" class="form-control" />
+                        <label for="status">Status</label>
+                        <InputSelect id="status" @bind-Value="editingTask.Status" class="form-control">
+                            <option value="Just Started">Just Started</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                        </InputSelect>
                     </div>
 
-                <div class="mb-3">
+                    <div class="mb-3">
+                        <label for="deadline">Deadline</label>
+                        <InputDate id="deadline" @bind-Value="editingTask.Deadline" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
                         <label>Assign Employees</label>
                         @if (employees == null)
                         {
@@ -62,7 +71,8 @@
                                         <input type="checkbox" 
                                             class="form-check-input" 
                                             id="emp_@employee.Id"
-                                            @onchange="@(e => ToggleEmployee(employee.Id, (bool)e.Value))" />
+                                            checked="@selectedEmployeeIds.Contains(employee.Id)"
+                                            @onchange="@(() => ToggleEmployee(employee.Id))" />
                                         <label class="form-check-label" for="emp_@employee.Id">
                                             @employee.FirstName @employee.LastName - @employee.Department
                                         </label>
@@ -71,7 +81,8 @@
                             </div>
                         }
                     </div>
-                    <button type="submit" class="btn btn-primary">Add Task</button>
+
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
                 </EditForm>
             </div>
         </div>
@@ -117,62 +128,58 @@
 </style>
 
 @code {
-    private Tasks task = new() { Status = "Just Started" };
-    private List<Employees> employees = new();
-    private List<int> selectedEmployeeIds = new();
+    [Parameter] public int TaskId { get; set;}
+    [Parameter] public EventCallback OnClose { get; set;}
+    private Tasks? editingTask;
+    private List<Employees>? employees = new();
+    private List<int>? selectedEmployeeIds = new();
     private string? errorMessage, successMessage;
-    [Parameter] public EventCallback OnClose { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            employees = await TaskService.GetEmployeesAsync();
-            Console.WriteLine($"Loaded {employees.Count} employees");
+        try {
+            editingTask = await TaskService.GetTaskByIdAsync(TaskId);
+
+            if (editingTask != null)
+            {
+                employees = await EmployeeService.GetEmployeesAsync();
+                selectedEmployeeIds = editingTask.TaskAssignments?.Select(ta => ta.EmployeeId).ToList() ?? new();
+            }
         }
         catch (Exception ex)
         {
-            errorMessage = ex.Message;
-            Console.WriteLine($"Error loading employees: {ex.Message}");
+            errorMessage = $"Error loading task: {ex.Message}";
         }
-    }
-
-    private void ToggleEmployee(int employeeId, bool isSelected)
-    {
-        if (isSelected)
-        {
-            selectedEmployeeIds.Add(employeeId);
-        }
-        else 
-        {
-            selectedEmployeeIds.Remove(employeeId);
-        }
-        Console.WriteLine($"Selected employees: {string.Join(", ", selectedEmployeeIds)}");
     }
     
-    private async Task SubmitTask()
+    private async Task SaveTask()
     {
         try
         {
-            var newTask = await TaskService.CreateTaskAsync(task);
-            if (newTask != null)
-            {
-                await TaskService.AssignEmployeesToTaskAsync(newTask.Id, selectedEmployeeIds);
-                
-                Console.WriteLine($"Created task '{newTask.Title}' with {newTask.Id} id");
-                Console.WriteLine($"Assigned task to employees: {string.Join(", ", selectedEmployeeIds)}");
+            if (editingTask == null) return;
 
-                task = new() { Status = "Just Started" };
-                selectedEmployeeIds.Clear();
-                successMessage = "Task created successfully!";
-                await Task.Delay(1500);
-                await OnClose.InvokeAsync();
-            }
+            await TaskService.UpdateTaskAsync(editingTask);
+            await TaskService.AssignEmployeesToTaskAsync(editingTask.Id, selectedEmployeeIds);
+
+            successMessage = "Task updated successfully!";
+            await Task.Delay(1500); 
+            await OnClose.InvokeAsync();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            errorMessage = e.Message;
-            Console.WriteLine($"Error creating task: {e.Message}");
+            errorMessage = $"Error saving task: {ex.Message}";
+            Console.WriteLine($"Error saving task: {ex.Message}");
         }
+    }
+    private void ToggleEmployee(int employeeId)
+    {
+        if (selectedEmployeeIds.Contains(employeeId))
+            selectedEmployeeIds.Remove(employeeId);
+        else
+            selectedEmployeeIds.Add(employeeId);
+    }
+    private async Task CancelEdit()
+    {
+        await OnClose.InvokeAsync();
     }
 }

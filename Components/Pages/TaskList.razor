@@ -1,8 +1,10 @@
 @page "/tasks"
 @using ManageFlow.Data.Models
 @using ManageFlow.Services
+@using ManageFlow.Components.Forms
 @inject ITaskManagerService TaskService
 @inject IEmployeeService EmployeeService
+@inject IJSRuntime JS
 @rendermode InteractiveServer
 
 <h3>Tasks</h3>
@@ -20,71 +22,9 @@
     </div>
 }
 
-@if (editingTask != null)
+@if (showEditTaskForm)
 {
-    <div class="card">
-        <div class="card-body">
-            <h4>Edit Task</h4>
-            <EditForm Model="@editingTask" OnValidSubmit="@SaveTask">
-                <div class="mb-3">
-                    <label for="title">Title</label>
-                    <InputText id="title" @bind-Value="editingTask.Title" class="form-control" />
-                </div>
-
-                <div class="mb-3">
-                    <label for="description">Description</label>
-                    <InputText id="description" @bind-Value="editingTask.Description" class="form-control" />
-                </div>
-
-                <div class="mb-3">
-                    <label for="status">Status</label>
-                    <InputSelect id="status" @bind-Value="editingTask.Status" class="form-control">
-                        <option value="Just Started">Just Started</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Completed">Completed</option>
-                    </InputSelect>
-                </div>
-
-                <div class="mb-3">
-                    <label for="deadline">Deadline</label>
-                    <InputDate id="deadline" @bind-Value="editingTask.Deadline" class="form-control" />
-                </div>
-
-                <div class="mb-3">
-                    <label>Assign Employees</label>
-                    @if (employees == null)
-                    {
-                        <p>Loading employees...</p>
-                    }
-                    else if (!employees.Any())
-                    {
-                        <p>No employees found</p>
-                    }
-                    else
-                    {
-                        <div class="list-group">
-                            @foreach (var employee in employees)
-                            {
-                                <div class="form-check">
-                                    <input type="checkbox" 
-                                        class="form-check-input" 
-                                        id="emp_@employee.Id"
-                                        checked="@selectedEmployeeIds.Contains(employee.Id)"
-                                        @onchange="@(e => ToggleEmployee(employee.Id))" />
-                                    <label class="form-check-label" for="emp_@employee.Id">
-                                        @employee.FirstName @employee.LastName - @employee.Department
-                                    </label>
-                                </div>
-                            }
-                        </div>
-                    }
-                </div>
-
-                <button type="submit" class="btn btn-primary">Save Changes</button>
-                <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
-            </EditForm>
-        </div>
-    </div>
+    <EditTaskForm TaskId="@selectedTaskId" OnClose="@(() => showEditTaskForm = false)" />
 }
 
 @if (tasks == null)
@@ -126,7 +66,7 @@ else
                                 <span>No assignments</span>
                             }
                         </td>
-                        <button class="btn btn-primary" @onclick="() => EditTask(task.Id)">Edit</button>
+                        <button class="btn btn-primary" @onclick="() => ShowEditTaskForm(task.Id)">Edit</button>
                         <button class="btn btn-danger" @onclick="() => DeleteTask(task.Id)">Delete</button>
                     </tr>
                 }
@@ -140,9 +80,9 @@ else
     private List<Employees> employees = new();
     private List<int> selectedEmployeeIds = new();
     private Dictionary<int, List<Employees>> taskAssignments = new();
-    private Tasks? editingTask;
-    private string? errorMessage;
-    private string? successMessage;
+    private string? errorMessage, successMessage;
+    private bool showEditTaskForm = false;
+    private int selectedTaskId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -175,50 +115,6 @@ else
         }
     }
 
-    private async Task EditTask(int taskId)
-    {
-        try
-        {
-            editingTask = tasks?.FirstOrDefault(t => t.Id == taskId);
-            
-            if (editingTask != null)
-            {
-                employees = await EmployeeService.GetEmployeesAsync();
-                var assignments = await TaskService.GetTaskAssignmentsAsync(taskId);
-                selectedEmployeeIds = assignments.Select(a => a.EmployeeId).ToList();
-            }
-        }
-        catch (Exception e)
-        {
-            errorMessage = e.Message;
-            Console.WriteLine($"Error loading task for editing: {e.Message}");
-        }
-    }
-
-    private async Task SaveTask()
-    {
-        try
-        {
-            if (editingTask == null) return;
-
-            await TaskService.UpdateTaskAsync(editingTask);
-            await TaskService.AssignEmployeesToTaskAsync(editingTask.Id, selectedEmployeeIds);
-
-            taskAssignments[editingTask.Id] = employees.Where(e => selectedEmployeeIds.Contains(e.Id)).ToList();
-
-            editingTask = null;
-            selectedEmployeeIds.Clear();
-            await OnInitializedAsync();
-            StateHasChanged();
-            successMessage = "Task edited successfully!";
-        }
-        catch (Exception e)
-        {
-            errorMessage = e.Message;
-            Console.WriteLine($"Error saving task: {e.Message}");
-        }
-    }
-
     private async Task DeleteTask(int taskId)
     {
         try 
@@ -235,17 +131,18 @@ else
         }
     }
 
-    private void CancelEdit()
-    {
-        editingTask = null;
-        selectedEmployeeIds.Clear();
-    }
-
     private void ToggleEmployee(int employeeId)
     {
         if (selectedEmployeeIds.Contains(employeeId))
             selectedEmployeeIds.Remove(employeeId);
         else
             selectedEmployeeIds.Add(employeeId);
+    }
+
+    private void ShowEditTaskForm(int taskId)
+    {
+        selectedTaskId = taskId;
+        showEditTaskForm = true;
+        StateHasChanged();
     }
 }

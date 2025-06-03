@@ -110,6 +110,11 @@ public class TaskManagerService : ITaskManagerService
         return task;
     }
 
+    public async Task<Tasks>? GetTaskByIdAsync(int taskId)
+    {
+        return await _context.Tasks.Include(t => t.TaskAssignments).ThenInclude(ta => ta.Employee).FirstOrDefaultAsync(t => t.Id == taskId);
+    }
+
     public async Task DeleteTaskAsync(int taskId)
     {
         var task = await _context.Tasks.FindAsync(taskId);
@@ -117,6 +122,10 @@ public class TaskManagerService : ITaskManagerService
         {
             _context.Tasks.Remove(task);
             await _context.SaveChangesAsync();
+        }
+        else
+        {
+            throw new KeyNotFoundException($"Task with ID {taskId} not found.");
         }
     }
 
