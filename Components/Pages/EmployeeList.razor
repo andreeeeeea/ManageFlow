@@ -1,6 +1,7 @@
 @page "/employees" 
 @using ManageFlow.Data.Models
 @using ManageFlow.Services
+@using ManageFlow.Components.Forms
 @inject IEmployeeService EmployeeService
 @rendermode InteractiveServer
 
@@ -19,41 +20,9 @@
     </div>
 }
 
-@if (editingEmployee != null)
+@if (showEditEmployeeForm)
 {
-    <div class="card">
-        <div class="card-body">
-            <h4>Edit Employee</h4>
-            <EditForm Model="@editingEmployee" OnValidSubmit="@SaveEmployee">
-                <div class="mb-3">
-                    <label for="firstName">First Name</label>
-                    <InputText id="firstName" @bind-Value="editingEmployee.FirstName" class="form-control" />
-                </div>
-                <div class="mb-3">
-                    <label for="lastName">Last Name</label>
-                    <InputText id="lastName" @bind-Value="editingEmployee.LastName" class="form-control" />
-                </div>
-                <div class="mb-3">
-                    <label for="email">Email</label>
-                    <InputText id="email" @bind-Value="editingEmployee.Email" class="form-control" />
-                </div>
-                <div class="mb-3">
-                    <label for="department">Department</label>
-                    <InputText id="department" @bind-Value="editingEmployee.Department" class="form-control" />
-                </div>
-                <div class="mb-3">
-                    <label for="position">Position</label>
-                    <InputText id="position" @bind-Value="editingEmployee.Position" class="form-control" />
-                </div>
-                <div class="mb-3">
-                    <label for="salary">Salary Per Annum</label>
-                    <InputNumber id="salary" @bind-Value="editingEmployee.Salary" class="form-control" />
-                </div>
-                <button type="submit" class="btn btn-primary">Update Employee</button>
-                <button type="button" class="btn btn-secondary" @onclick="() => editingEmployee = null">Cancel</button>
-            </EditForm>
-        </div>
-    </div>
+    <EditEmployeeForm EmployeeId="@editingEmployeeId" OnClose="@(() => showEditEmployeeForm = false)" />
 }
 
 @if (employees == null)
@@ -86,7 +55,7 @@ else
                         <td>@employee.Department</td>
                         <td>@employee.Position</td>
                         <td>@employee.Salary.ToString("C")</td>
-                        <button class="btn btn-primary" @onclick="() => EditEmployee(employee.Id)">Edit</button>
+                        <button class="btn btn-primary" @onclick="() => ShowEditEmployeeForm(employee.Id)">Edit</button>
                         <button class="btn btn-danger" @onclick="() => DeleteEmployee(employee.Id)">Delete</button>
                     </tr>
                 }
@@ -97,9 +66,10 @@ else
 
 @code {
     private List<Employees> employees = new();
-    private Employees? editingEmployee;
     private string? errorMessage;
     private string? successMessage;
+    private int editingEmployeeId;
+    private bool showEditEmployeeForm = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -113,41 +83,6 @@ else
             Console.WriteLine($"Error loading employees: {e.Message}");
         }
     }
-
-    private async Task EditEmployee(int employeeId)
-    {
-        try 
-        {
-            employees = await EmployeeService.GetEmployeesAsync();
-            editingEmployee = employees.FirstOrDefault(e => e.Id == employeeId);
-        }
-        catch (Exception e) 
-        {
-            errorMessage = e.Message;
-            Console.WriteLine($"Error editing employee: {e.Message}");
-        }
-    }
-
-    private async Task SaveEmployee()
-    {
-        try 
-        {
-            if (editingEmployee != null) 
-            {
-                await EmployeeService.UpdateEmployeeAsync(editingEmployee);
-                employees = await EmployeeService.GetEmployeesAsync();
-                editingEmployee = null;
-                StateHasChanged();
-                successMessage = "Employee edited successfully!";
-            }
-        }
-        catch (Exception e) 
-        {
-            errorMessage = e.Message;
-            Console.WriteLine($"Error saving employee: {e.Message}");
-        }
-    }
-
     private async Task DeleteEmployee(int employeeId)
     {
         try 
@@ -162,5 +97,12 @@ else
             errorMessage = e.Message;
             Console.WriteLine($"Error deleting employee: {e.Message}");
         }
+    }
+
+    private void ShowEditEmployeeForm(int employeeId)
+    {
+        editingEmployeeId = employeeId;
+        showEditEmployeeForm = true;
+        StateHasChanged();
     }
 }

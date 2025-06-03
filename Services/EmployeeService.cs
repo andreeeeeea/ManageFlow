@@ -50,6 +50,11 @@ namespace ManageFlow.Services
             return null;
         }
 
+        public async Task<Employees>? GetEmployeeByIdAsync(int employeeId)
+        {
+            return await _context.Employees.FirstOrDefaultAsync(e => e.Id == employeeId);
+        }
+
         public async Task DeleteEmployeeAsync(int employeeId)
         {
             var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Id == employeeId);
