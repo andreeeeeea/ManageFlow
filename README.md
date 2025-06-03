@@ -19,6 +19,6 @@ Users can sign up and choose whether they're managers or employees. If an employ
 
  
 
-- When properly done with the backend somewhat, focus a bit on the frontend. 
+- When properly done with the backend somewhat, focus a bit on the frontend. ---> STARTED ON THIS.
 
 Won't spend too much time on the frontend, as this is mostly meant to be a backend project. Will probably search some templates online and modify them (and link them here!).
