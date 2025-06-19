@@ -15,32 +15,43 @@ namespace ManageFlow.Data
         public DbSet<Employees> Employees { get; set; }
         public DbSet<Tasks> Tasks { get; set; }
         public DbSet<TaskAssignments> TaskAssignments { get; set; }
+         public DbSet<Role> Roles => Set<Role>();
+        public DbSet<Permission> Permissions => Set<Permission>();
+        public DbSet<UserRole> UserRoles => Set<UserRole>();
+        public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
             builder.Entity<TaskAssignments>()
-                .HasKey(ta => new { ta.TaskId, ta.EmployeeId }); 
+                .HasKey(ta => new { ta.TaskId, ta.EmployeeId });
 
             builder.Entity<TaskAssignments>()
                 .HasOne(ta => ta.Task)
                 .WithMany(t => t.TaskAssignments)
                 .HasForeignKey(ta => ta.TaskId)
-                .OnDelete(DeleteBehavior.Cascade); 
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<TaskAssignments>()
                 .HasOne(ta => ta.Employee)
                 .WithMany(e => e.TaskAssignments)
                 .HasForeignKey(ta => ta.EmployeeId)
-                .OnDelete(DeleteBehavior.Cascade); 
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<Employees>()
-                .HasOne(e => e.User)  
+                .HasOne(e => e.User)
                 .WithOne()
                 .HasForeignKey<Employees>(e => e.UserId)
-                .IsRequired(false); 
+                .IsRequired(false);
+
+            builder.Entity<UserRole>()
+                .HasKey(ur => new { ur.UserId, ur.RoleId });
+
+            builder.Entity<RolePermission>()
+                .HasKey(rp => new { rp.RoleId, rp.PermissionId });
 
         }
+        
     }
 }

@@ -41,6 +41,22 @@ public class Program
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultTokenProviders();
 
+        builder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy("CanViewEmployees", policy =>
+                policy.RequireClaim("Permission", "Employees.View"));
+            options.AddPolicy("CanManageEmployees", policy =>
+                policy.RequireClaim("Permission", "Employees.Create", "Employees.Update", "Employees.Delete"));
+
+            options.AddPolicy("CanViewTasks", policy =>
+                policy.RequireClaim("Permission", "Tasks.View"));
+            options.AddPolicy("CanManageTasks", policy =>
+                policy.RequireClaim("Permission", "Tasks.Create", "Tasks.Update", "Tasks.Delete")); 
+            
+            options.AddPolicy("IsAdmin", policy =>
+                policy.RequireRole("Administrator"));
+        });
+
         // If you are not using an email sender in production, you can configure it here as below:
         builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
