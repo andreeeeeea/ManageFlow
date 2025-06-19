@@ -105,6 +105,8 @@
             return;
         }
 
+        await UserManager.AddToRoleAsync(user, Input.Role);
+
         Logger.LogInformation("User created a new account with password.");
 
         var userId = await UserManager.GetUserIdAsync(user);
@@ -187,7 +189,7 @@
         [Required]
         [StringLength(10)]
         [Display(Name = "Role")]
-        public string Role { get; set; } = "";
+        public string Role { get; set; } = "Employee";
 
 
     }
