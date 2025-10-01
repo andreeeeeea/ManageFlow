@@ -29,21 +29,21 @@
                     <DataAnnotationsValidator />
 
                     <div class="mb-3">
-                        <label for="title"> Title</label>
-                        <InputText id="title" @bind-Value="task.Title" class="form-control" />
+                        <label for="title" class="form-label">Title</label>
+                        <InputText id="title" @bind-Value="task.Title" class="form-control" placeholder="Enter task title" />
                     </div>
 
                     <div class="mb-3">
-                        <label for="=description"> Description</label>
-                        <InputText id="description" @bind-Value="task.Description" class="form-control" />
+                        <label for="description" class="form-label">Description</label>
+                        <InputTextArea id="description" @bind-Value="task.Description" class="form-control" rows="3" placeholder="Enter task description" />
                     </div>
 
                     <div class="mb-3">
-                        <label for="deadline"> Deadline</label>
+                        <label for="deadline" class="form-label">Deadline</label>
                         <InputDate id="deadline" @bind-Value="task.Deadline" class="form-control" />
                     </div>
 
-                <div class="mb-3">
+                    <div class="mb-3">
                         <label>Assign Employees</label>
                         @if (employees == null)
                         {
@@ -158,7 +158,7 @@
             if (newTask != null)
             {
                 await TaskService.AssignEmployeesToTaskAsync(newTask.Id, selectedEmployeeIds);
-                
+
                 Console.WriteLine($"Created task '{newTask.Title}' with {newTask.Id} id");
                 Console.WriteLine($"Assigned task to employees: {string.Join(", ", selectedEmployeeIds)}");
 
@@ -175,4 +175,5 @@
             Console.WriteLine($"Error creating task: {e.Message}");
         }
     }
+
 }

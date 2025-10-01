@@ -15,9 +15,9 @@ namespace ManageFlow.Data
         public DbSet<Employees> Employees { get; set; }
         public DbSet<Tasks> Tasks { get; set; }
         public DbSet<TaskAssignments> TaskAssignments { get; set; }
-         public DbSet<Role> Roles => Set<Role>();
+         public DbSet<Role> CustomRoles => Set<Role>();
         public DbSet<Permission> Permissions => Set<Permission>();
-        public DbSet<UserRole> UserRoles => Set<UserRole>();
+        public DbSet<UserRole> CustomUserRoles => Set<UserRole>();
         public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
         protected override void OnModelCreating(ModelBuilder builder)

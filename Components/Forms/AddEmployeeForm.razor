@@ -28,23 +28,23 @@
                     <DataAnnotationsValidator />
 
                     <div class="mb-3">
-                        <label for="firstName">First Name</label>
-                        <InputText id="firstName" @bind-Value="employee.FirstName" class="form-control" />
+                        <label for="firstName" class="form-label">First Name</label>
+                        <InputText id="firstName" @bind-Value="employee.FirstName" class="form-control" placeholder="Enter first name" />
                     </div>
 
                     <div class="mb-3">
-                        <label for="lastName">Last Name</label>
-                        <InputText id="lastName" @bind-Value="employee.LastName" class="form-control" />
+                        <label for="lastName" class="form-label">Last Name</label>
+                        <InputText id="lastName" @bind-Value="employee.LastName" class="form-control" placeholder="Enter last name" />
                     </div>
 
                     <div class="mb-3">
-                        <label for="email">Email</label>
-                        <InputText id="email" @bind-Value="employee.Email" class="form-control" />
+                        <label for="email" class="form-label">Email</label>
+                        <InputText id="email" @bind-Value="employee.Email" class="form-control" placeholder="employee@example.com" type="email" />
                     </div>
 
                     <div class="mb-3">
-                        <label for="department">Department</label>
-                        <InputText id="department" @bind-Value="employee.Department" class="form-control" />
+                        <label for="department" class="form-label">Department</label>
+                        <InputText id="department" @bind-Value="employee.Department" class="form-control" placeholder="e.g. Engineering, Sales" />
                     </div>
 
                     <div class="mb-3">

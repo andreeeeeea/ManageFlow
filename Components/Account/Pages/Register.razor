@@ -20,14 +20,14 @@
 
 <PageTitle>Register</PageTitle>
 
-<h1>Register</h1>
 
-<div class="row">
-    <div class="col-lg-6">
+<div class="container-fluid p-0">
+    <div class="row g-0 justify-content-center align-items-center min-vh-100">
+        <div class="col-lg-6 px-4 py-4">
         <StatusMessage Message="@Message" />
         <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
             <DataAnnotationsValidator />
-            <h2>Create a new account.</h2>
+            <h2 class="text-center">Create a new account</h2>
             <hr />
             <ValidationSummary class="text-danger" role="alert" />
             <div class="form-floating mb-3">
@@ -46,14 +46,6 @@
                 <ValidationMessage For="() => Input.Email" class="text-danger" />
             </div>
             <div class="form-floating mb-3">
-                <InputSelect @bind-Value="Input.Role" class="form-select">
-                    <option value="Manager">Manager</option>
-                    <option value="Employee">Employee</option>
-                </InputSelect>
-                <label for="Input.Role">Role</label>
-                <ValidationMessage For="() => Input.Role" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
                 <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
                 <label for="Input.Password">Password</label>
                 <ValidationMessage For="() => Input.Password" class="text-danger" />
@@ -63,15 +55,25 @@
                 <label for="Input.ConfirmPassword">Confirm Password</label>
                 <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+            <div class="mb-3">
+                <label class="form-label d-block mb-2">Are you joining as a Manager or an Employee?</label>
+                <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check" name="roleOptions" id="roleManager" value="Manager" @onchange="@(() => Input.Role = "Manager")" checked="@(Input.Role == "Manager")" />
+                    <label class="btn btn-outline-gradient" for="roleManager">
+                        <i class="bi bi-briefcase-fill me-2"></i>Manager
+                    </label>
+                    <input type="radio" class="btn-check" name="roleOptions" id="roleEmployee" value="Employee" @onchange="@(() => Input.Role = "Employee")" checked="@(Input.Role == "Employee")" />
+                    <label class="btn btn-outline-gradient" for="roleEmployee">
+                        <i class="bi bi-person-fill me-2"></i>Employee
+                    </label>
+                </div>
+                <ValidationMessage For="() => Input.Role" class="text-danger" />
+            </div>
+            <div class="text-center">
+               <button type="submit" class="w-50 btn btn-lg btn-primary">Register</button>
+            </div>
         </EditForm>
-    </div>
-    <div class="col-lg-4 col-lg-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            <ExternalLoginPicker />
-        </section>
+        </div>
     </div>
 </div>
 

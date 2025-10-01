@@ -2,7 +2,7 @@ namespace ManageFlow.Data.Models
 {
     public class UserRole
     {
-        public int UserId { get; set; }
+        public string UserId { get; set; } = null!;
         public int RoleId { get; set; }
 
         public virtual ApplicationUser User { get; set;  } = null!;

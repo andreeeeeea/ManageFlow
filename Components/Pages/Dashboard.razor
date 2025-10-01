@@ -8,9 +8,11 @@
 
 <AuthorizeView>
     <Authorized>
-        <p class="text-center fs-4 fw-bold mt-5">Welcome, @context.User.Identity?.Name! </p>
-        <div class="row mb-4 mt-5 justify-content-center"> 
-            <p class="text-center fs-4 fw-bold"> You have... </p>
+        <div class="dashboard-header text-center mb-5">
+            <h1 class="welcome-title">Welcome back, @context.User.Identity?.Name! 👋</h1>
+            <p class="text-muted fs-5">Here's your workspace overview</p>
+        </div>
+        <div class="row mb-4 justify-content-center">
             <div class="row row-cols-1 row-cols-md-3">
                 <div class="col">
                     <div class="card h-100 text-center">

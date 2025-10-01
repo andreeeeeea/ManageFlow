@@ -8,8 +8,18 @@ main {
     flex: 1;
 }
 
+.full-page {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
 .sidebar {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0), rgba(187, 207, 230, 0.432)); 
+    background: linear-gradient(180deg, #ffffff 0%, #f8f9ff 100%);
+    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.08);
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .top-row {
@@ -99,16 +109,21 @@ main {
 
 .add-button {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
-    padding: 10px 20px;
-    background-color:rgb(5, 39, 103);
+    bottom: 30px;
+    right: 30px;
+    padding: 15px 25px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
+    border-radius: 50px;
     cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+    transition: all 0.3s ease;
+    font-weight: 600;
+    z-index: 1000;
 }
 
 .add-button:hover {
-    background-color: #3a0647;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
 }

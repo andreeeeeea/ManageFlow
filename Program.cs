@@ -27,8 +27,11 @@ public class Program
         builder.Services.AddScoped<IdentityRedirectManager>();
         builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
+        // Configure AppContext to use legacy timestamp behavior for PostgreSQL
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlite($"Data Source={Path.Combine(Directory.GetCurrentDirectory(), "Data", "app.db")}"));
+            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
