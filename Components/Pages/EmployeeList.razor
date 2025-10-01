@@ -37,7 +37,7 @@
 
 @if (showEditEmployeeForm)
 {
-    <EditEmployeeForm EmployeeId="@editingEmployeeId" OnClose="@(() => showEditEmployeeForm = false)" />
+    <EditEmployeeForm EmployeeId="@editingEmployeeId" OnClose="@HandleEditFormClose" />
 }
 
 @if (employees == null)
@@ -140,6 +140,13 @@ else
     {
         editingEmployeeId = employeeId;
         showEditEmployeeForm = true;
+        StateHasChanged();
+    }
+
+    private async Task HandleEditFormClose()
+    {
+        showEditEmployeeForm = false;
+        await OnInitializedAsync(); // Refresh the employee list
         StateHasChanged();
     }
 }

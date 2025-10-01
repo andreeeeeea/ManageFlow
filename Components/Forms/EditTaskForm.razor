@@ -27,6 +27,17 @@
                     </div>
                 }
 
+                @if (editingTask == null)
+                {
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading task details...</p>
+                    </div>
+                }
+                else
+                {
                 <EditForm Model="@editingTask" OnValidSubmit="@SaveTask">
                     <div class="mb-3">
                         <label for="title">Title</label>
@@ -84,6 +95,7 @@
 
                     <button type="submit" class="btn btn-primary">Save Changes</button>
                 </EditForm>
+                }
             </div>
         </div>
     </div>
@@ -100,6 +112,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        z-index: 1050;
     }
 
     .modal-dialog {
@@ -112,6 +125,7 @@
         background-color: white;
         border-radius: 0.3rem;
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        z-index: 1060;
     }
 
     .modal-header {
@@ -130,12 +144,12 @@
 @code {
     [Parameter] public int TaskId { get; set;}
     [Parameter] public EventCallback OnClose { get; set;}
-    private Tasks? editingTask;
+    private Tasks? editingTask = new Tasks();
     private List<Employees>? employees = new();
     private List<int>? selectedEmployeeIds = new();
     private string? errorMessage, successMessage;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         try {
             editingTask = await TaskService.GetTaskByIdAsync(TaskId);
@@ -143,7 +157,8 @@
             if (editingTask != null)
             {
                 employees = await EmployeeService.GetEmployeesAsync();
-                selectedEmployeeIds = editingTask.TaskAssignments?.Select(ta => ta.EmployeeId).ToList() ?? new();
+                var assignments = await TaskService.GetTaskAssignmentsAsync(TaskId);
+                selectedEmployeeIds = assignments?.Select(ta => ta.EmployeeId).ToList() ?? new();
             }
         }
         catch (Exception ex)

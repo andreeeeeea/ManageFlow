@@ -39,7 +39,7 @@
 
 @if (showEditTaskForm)
 {
-    <EditTaskForm TaskId="@selectedTaskId" OnClose="@(() => showEditTaskForm = false)" />
+    <EditTaskForm TaskId="@selectedTaskId" OnClose="@HandleEditFormClose" />
 }
 
 @if (tasks == null)
@@ -180,6 +180,13 @@ else
     {
         selectedTaskId = taskId;
         showEditTaskForm = true;
+        StateHasChanged();
+    }
+
+    private async Task HandleEditFormClose()
+    {
+        showEditTaskForm = false;
+        await OnInitializedAsync(); // Refresh the task list
         StateHasChanged();
     }
 }

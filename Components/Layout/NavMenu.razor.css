@@ -109,13 +109,11 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-    transform: translateX(5px);
 }
 
 .nav-item ::deep .nav-link:hover {
     background-color: #f7fafc;
     color: #667eea;
-    transform: translateX(5px);
 }
 
 .nav-scrollable {
@@ -124,6 +122,35 @@
 
 .navbar-toggler:checked ~ .nav-scrollable {
     display: block;
+}
+
+.nav-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.nav-top {
+    flex-grow: 1;
+}
+
+.nav-bottom {
+    margin-top: auto;
+    padding: 0.5rem 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    margin-bottom: 0;
+}
+
+.nav-bottom .nav-item {
+    padding: 0.25rem 0.5rem;
+    margin: 0;
+}
+
+.nav-bottom .nav-link {
+    height: 2.5rem !important;
+    line-height: 2.5rem !important;
+    margin: 0 !important;
 }
 
 @media (min-width: 641px) {
@@ -136,7 +163,7 @@
         display: block;
 
         /* Allow sidebar to scroll for tall menus */
-        height: calc(100vh - 3.5rem);
+        height: calc(100vh - 4rem);
         overflow-y: auto;
         overflow-x: hidden;
     }

@@ -14,6 +14,17 @@
 <h3>Profile</h3>
 <StatusMessage />
 
+@if (isLoading)
+{
+    <div class="text-center py-3">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading profile...</p>
+    </div>
+}
+else
+{
 <div class="row">
     <div class="col-xl-6">
         <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
@@ -24,15 +35,15 @@
                 <label for="username" class="form-label">Email</label>
             </div>
             <div class="form-floating mb-3">
-                <input type="text" value="@user.FirstName" id="firstName" class="form-control" placeholder="Your first name" disabled />
+                <input type="text" value="@(user?.FirstName ?? "")" id="firstName" class="form-control" placeholder="Your first name" disabled />
                 <label for="firstName" class="form-label">First name</label>
             </div>
             <div class="form-floating mb-3">
-                <input type="text" value="@user.LastName" id="lastName" class="form-control" placeholder="Your last name" disabled />
+                <input type="text" value="@(user?.LastName ?? "")" id="lastName" class="form-control" placeholder="Your last name" disabled />
                 <label for="lastName" class="form-label">Last name</label>
             </div>
             <div class="form-floating mb-3">
-                <input type="text" value="@user.Role" id="role" class="form-control" placeholder="Your role" disabled />
+                <input type="text" value="@(user?.Role ?? "")" id="role" class="form-control" placeholder="Your role" disabled />
                 <label for="role" class="form-label">Role</label>
             </div>
             <div class="form-floating mb-3">
@@ -44,11 +55,13 @@
         </EditForm>
     </div>
 </div>
+}
 
 @code {
     private ApplicationUser user = default!;
     private string? username;
     private string? phoneNumber;
+    private bool isLoading = true;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -58,11 +71,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
-        username = await UserManager.GetUserNameAsync(user);
-        phoneNumber = await UserManager.GetPhoneNumberAsync(user);
+        try
+        {
+            user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+            username = await UserManager.GetUserNameAsync(user);
+            phoneNumber = await UserManager.GetPhoneNumberAsync(user);
 
-        Input.PhoneNumber ??= phoneNumber;
+            Input.PhoneNumber ??= phoneNumber;
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
 
     private async Task OnValidSubmitAsync()
