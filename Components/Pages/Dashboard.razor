@@ -1,15 +1,19 @@
 @page "/dashboard"
 @using ManageFlow.Data.Models
 @using ManageFlow.Services
+@using ManageFlow.Data
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
 @inject ITaskManagerService TaskService
 @inject IEmployeeService EmployeeService
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize]
 
 <AuthorizeView>
     <Authorized>
         <div class="dashboard-header text-center mb-5">
-            <h1 class="welcome-title">Welcome back, @context.User.Identity?.Name! 👋</h1>
+            <h1 class="welcome-title">Welcome back, @userFirstName! 👋</h1>
             <p class="text-muted fs-5">Here's your workspace overview</p>
         </div>
         <div class="row mb-4 justify-content-center">
@@ -74,6 +78,7 @@
 
 @code {
     private string errorMessage;
+    private string userFirstName = "User";
     int tasks, latestTasks, completedTasksThisWeek, overdueTasks, tasksDueToday;
     int employees;
     Dictionary<string, int> employeesByDepartment = new Dictionary<string, int>();
@@ -82,6 +87,13 @@
     {
         try
         {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = await UserManager.GetUserAsync(authState.User);
+            if (user != null)
+            {
+                userFirstName = user.FirstName ?? "User";
+            }
+
             tasks = (await TaskService.GetTasksAsync()).Count;
             latestTasks = (await TaskService.GetLatestTasksAsync()).Count;
             completedTasksThisWeek = (await TaskService.GetCompletedTasksAsync()).Count;
@@ -92,7 +104,7 @@
             employees = (await EmployeeService.GetEmployeesAsync()).Count;
             employeesByDepartment = await EmployeeService.GetEmployeeRolesCountAsync();
 
-            
+
         }
         catch (Exception e)
         {
