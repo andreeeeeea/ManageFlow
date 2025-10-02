@@ -12,7 +12,7 @@
 
 <AuthorizeView>
     <Authorized>
-        <div class="dashboard-header text-center mb-5">
+        <div class="dashboard-header text-start mb-5">
             <h1 class="welcome-title">Welcome back, @userFirstName! 👋</h1>
             <p class="text-muted fs-5">Here's your workspace overview</p>
         </div>
@@ -45,6 +45,125 @@
                 </div>  
             </div>
         </div>
+        <div class="row mb-4">
+            <h2 class="text-start my-4">Recent Activity</h2>
+            <div class="row row-cols-1 row-cols-md-3 gx-4">
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title mb-0">⚠️ Overdue Tasks</h5>
+                                <span class="badge bg-danger">@overdueTasks.Count</span>
+                            </div>
+                            <div class="activity-list">
+                                @if (overdueTasks.Count == 0)
+                                {
+                                    <p class="text-muted text-center py-4">No overdue tasks</p>
+                                }
+                                else
+                                {
+                                    @foreach (var task in overdueTasks)
+                                    {
+                                        <div class="activity-item overdue">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">@task.Title</h6>
+                                                    <small class="text-muted">
+                                                        Assigned to: @GetAssignedEmployees(task)
+                                                    </small>
+                                                </div>
+                                                <div class="text-end ms-2">
+                                                    <span class="badge bg-danger">
+                                                        @GetDeadlineText(task.Deadline)
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title mb-0">📅 Tasks Due This Week</h5>
+                                <span class="badge bg-primary">@upcomingTasks.Count</span>
+                            </div>
+                            <div class="activity-list">
+                                @if (upcomingTasks.Count == 0)
+                                {
+                                    <p class="text-muted text-center py-4">No upcoming tasks this week</p>
+                                }
+                                else
+                                {
+                                    @foreach (var task in upcomingTasks)
+                                    {
+                                        <div class="activity-item @GetUrgencyClass(task.Deadline)">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">@task.Title</h6>
+                                                    <small class="text-muted">
+                                                        Assigned to: @GetAssignedEmployees(task)
+                                                    </small>
+                                                </div>
+                                                <div class="text-end ms-2">
+                                                    <span class="badge @GetDeadlineBadgeClass(task.Deadline)">
+                                                        @GetDeadlineText(task.Deadline)
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title mb-0">✅ Recent Completions</h5>
+                                <span class="badge bg-success">@recentCompletions.Count</span>
+                            </div>
+                            <div class="activity-list">
+                                @if (recentCompletions.Count == 0)
+                                {
+                                    <p class="text-muted text-center py-4">No recent completions</p>
+                                }
+                                else
+                                {
+                                    @foreach (var task in recentCompletions)
+                                    {
+                                        <div class="activity-item completed">
+                                            <div class="d-flex align-items-start">
+                                                <div class="completion-icon me-2">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <circle cx="10" cy="10" r="9" stroke="#28a745" stroke-width="2"/>
+                                                        <path d="M6 10l3 3 5-6" stroke="#28a745" stroke-width="2" fill="none"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">@task.Title</h6>
+                                                    <small class="text-muted">
+                                                        Completed by @GetAssignedEmployees(task) • @GetTimeAgo(task.UpdatedAt)
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </Authorized>
     <NotAuthorized>
         <div class="text-center">
@@ -74,14 +193,73 @@
 .card:hover .card-body .display-4 {
     transform: scale(1.1);
 }
+
+.activity-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    padding: 12px;
+    border-left: 3px solid transparent;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    background: #f8f9fa;
+    transition: all 0.2s ease;
+}
+
+.activity-item.overdue {
+    border-left-color: #dc3545;
+    background: #fff5f5;
+}
+
+.activity-item.today {
+    border-left-color: #fd7e14;
+    background: #fff8f0;
+}
+
+.activity-item.this-week {
+    border-left-color: #ffc107;
+    background: #fffbf0;
+}
+
+.activity-item.completed {
+    border-left-color: #28a745;
+}
+
+.completion-icon {
+    margin-top: 2px;
+}
+
+.activity-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.activity-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.activity-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.activity-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
 </style>
 
 @code {
-    private string errorMessage;
+    private string? errorMessage;
     private string userFirstName = "User";
-    int tasks, latestTasks, completedTasksThisWeek, overdueTasks, tasksDueToday;
+    int tasks, latestTasks, completedTasksThisWeek, tasksDueToday;
     int employees;
     Dictionary<string, int> employeesByDepartment = new Dictionary<string, int>();
+
+    private List<Tasks> overdueTasks = new List<Tasks>();
+    private List<Tasks> upcomingTasks = new List<Tasks>();
+    private List<Tasks> recentCompletions = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -97,19 +275,100 @@
             tasks = (await TaskService.GetTasksAsync()).Count;
             latestTasks = (await TaskService.GetLatestTasksAsync()).Count;
             completedTasksThisWeek = (await TaskService.GetCompletedTasksAsync()).Count;
-            overdueTasks = (await TaskService.GetOverdueTasksAsync()).Count;
             tasksDueToday = (await TaskService.GetTodayTasksAsync()).Count;
-
 
             employees = (await EmployeeService.GetEmployeesAsync()).Count;
             employeesByDepartment = await EmployeeService.GetEmployeeRolesCountAsync();
 
+            overdueTasks = (await TaskService.GetOverdueTasksAsync())
+                .OrderBy(t => t.Deadline)
+                .Take(5)
+                .ToList();
 
+            upcomingTasks = (await TaskService.GetUpcomingTasksAsync())
+                .OrderBy(t => t.Deadline)
+                .Take(5)
+                .ToList();
+
+            recentCompletions = (await TaskService.GetCompletedTasksAsync())
+                .OrderByDescending(t => t.UpdatedAt)
+                .Take(5)
+                .ToList();
         }
         catch (Exception e)
         {
             errorMessage = e.Message;
             Console.WriteLine($"Error loading dashboard data: {e.Message}");
         }
+    }
+
+    private string GetAssignedEmployees(Tasks task)
+    {
+        if (task.TaskAssignments == null || !task.TaskAssignments.Any())
+            return "Unassigned";
+
+        var employees = task.TaskAssignments
+            .Where(ta => ta.Employee != null)
+            .Select(ta => $"{ta.Employee.FirstName} {ta.Employee.LastName}")
+            .ToList();
+
+        return employees.Any() ? string.Join(", ", employees) : "Unassigned";
+    }
+
+    private string GetTimeAgo(DateTime dateTime)
+    {
+        var span = DateTime.Now - dateTime;
+
+        if (span.TotalMinutes < 1) return "Just now";
+        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes} min ago";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours}h ago";
+        if (span.TotalDays < 2) return "Yesterday";
+        if (span.TotalDays < 7) return $"{(int)span.TotalDays}d ago";
+
+        return dateTime.ToString("MMM dd");
+    }
+
+    private string GetUrgencyClass(DateTime? deadline)
+    {
+        if (!deadline.HasValue) return "";
+
+        var now = DateTime.Now.Date;
+        var deadlineDate = deadline.Value.Date;
+
+        if (deadlineDate < now) return "overdue";
+        if (deadlineDate == now) return "today";
+        if (deadlineDate <= now.AddDays(7)) return "this-week";
+
+        return "";
+    }
+
+    private string GetDeadlineBadgeClass(DateTime? deadline)
+    {
+        if (!deadline.HasValue) return "bg-secondary";
+
+        var now = DateTime.Now.Date;
+        var deadlineDate = deadline.Value.Date;
+
+        if (deadlineDate < now) return "bg-danger";
+        if (deadlineDate == now) return "bg-warning";
+        if (deadlineDate <= now.AddDays(7)) return "bg-info";
+
+        return "bg-secondary";
+    }
+
+    private string GetDeadlineText(DateTime? deadline)
+    {
+        if (!deadline.HasValue) return "No deadline";
+
+        var now = DateTime.Now.Date;
+        var deadlineDate = deadline.Value.Date;
+        var daysUntil = (deadlineDate - now).Days;
+
+        if (daysUntil < 0) return $"{Math.Abs(daysUntil)}d overdue";
+        if (daysUntil == 0) return "Today";
+        if (daysUntil == 1) return "Tomorrow";
+        if (daysUntil <= 7) return $"In {daysUntil} days";
+
+        return deadline.Value.ToString("MMM dd");
     }
 }

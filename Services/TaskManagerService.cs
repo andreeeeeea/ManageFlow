@@ -76,7 +76,11 @@ public class TaskManagerService : ITaskManagerService
 
     public async Task<List<Tasks>> GetCompletedTasksAsync()
     {
-        return await _context.Tasks.Where(task => task.Status == "Completed").ToListAsync();
+        return await _context.Tasks
+            .Include(t => t.TaskAssignments)
+            .ThenInclude(ta => ta.Employee)
+            .Where(task => task.Status == "Completed")
+            .ToListAsync();
     }
 
     public async Task<List<Tasks>> GetInProgressTasksAsync()
@@ -90,17 +94,30 @@ public class TaskManagerService : ITaskManagerService
     public async Task<List<Tasks>> GetTodayTasksAsync()
     {
         var today = DateTime.Today;
-        return await _context.Tasks.Where(task => task.Deadline == today).ToListAsync();
+        return await _context.Tasks.Where(task => task.Status != "Completed" &&  task.Deadline == today).ToListAsync();
     }
     public async Task<List<Tasks>> GetTomorrowTasksAsync()
     {
         var tomorrow = DateTime.Today.AddDays(1);
-        return await _context.Tasks.Where(task => task.Deadline == tomorrow).ToListAsync();
+        return await _context.Tasks.Where(task => task.Status != "Completed" &&  task.Deadline == tomorrow).ToListAsync();
+    }
+    public async Task<List<Tasks>> GetUpcomingTasksAsync()
+    {
+        var week = DateTime.Today.AddDays(7);
+        return await _context.Tasks
+            .Include(t => t.TaskAssignments)
+            .ThenInclude(ta => ta.Employee)
+            .Where(task => task.Status != "Completed" && task.Deadline >= DateTime.Today && task.Deadline <= week)
+            .ToListAsync();
     }
     public async Task<List<Tasks>> GetOverdueTasksAsync()
     {
         var today = DateTime.Today;
-        return await _context.Tasks.Where(task => task.Deadline < today && task.Status != "Completed").ToListAsync();
+        return await _context.Tasks
+            .Include(t => t.TaskAssignments)
+            .ThenInclude(ta => ta.Employee)
+            .Where(task => task.Status != "Completed" && task.Deadline < today)
+            .ToListAsync();
     }
 
     public async Task<Tasks> UpdateTaskAsync(Tasks task)

@@ -2,9 +2,13 @@
 @using ManageFlow.Data.Models
 @using ManageFlow.Services
 @using ManageFlow.Components.Forms
+@using ManageFlow.Data
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Components.Authorization
 @inject ITaskManagerService TaskService
 @inject IEmployeeService EmployeeService
 @inject IJSRuntime JS
+@inject UserManager<ApplicationUser> UserManager
 @rendermode InteractiveServer
 
 <div class="page-header mb-4">
@@ -13,8 +17,28 @@
             <h2 class="page-title">📋 Task Management</h2>
             <p class="text-muted">Track and manage all your tasks in one place</p>
         </div>
-        <button class="btn btn-primary" @onclick="ShowAddTaskForm">
-            <i class="bi bi-plus-circle"></i> Add New Task
+        @if (isManager)
+        {
+            <button class="btn btn-primary" @onclick="ShowAddTaskForm">
+                <i class="bi bi-plus-circle"></i> Add New Task
+            </button>
+        }
+    </div>
+    <div class=" w-auto d-flex gap-2 flex-wrap p-2 bg-white rounded-3 border shadow-sm">
+        <button class="btn @(statusFilter == "all" ? "btn-primary" : "btn-outline-secondary") btn-sm" @onclick='() => SetStatusFilter("all")'>
+            All
+        </button>
+        <button class="btn @(statusFilter == "Not Started" ? "btn-primary" : "btn-outline-secondary") btn-sm" @onclick='() => SetStatusFilter("Not Started")'>
+            Not Started
+        </button>
+        <button class="btn @(statusFilter == "Just Started" ? "btn-primary" : "btn-outline-secondary") btn-sm" @onclick='() => SetStatusFilter("Just Started")'>
+            Just Started
+        </button>
+        <button class="btn @(statusFilter == "In Progress" ? "btn-primary" : "btn-outline-secondary") btn-sm" @onclick='() => SetStatusFilter("In Progress")'>
+            In Progress
+        </button>
+        <button class="btn @(statusFilter == "Completed" ? "btn-primary" : "btn-outline-secondary") btn-sm" @onclick='() => SetStatusFilter("Completed")'>
+            Completed
         </button>
     </div>
 </div>
@@ -91,12 +115,19 @@ else
                             }
                         </td>
                         <td class="text-end">
-                            <button class="btn btn-sm btn-primary me-2" @onclick="() => ShowEditTaskForm(task.Id)">
-                                <i class="bi bi-pencil"></i> Edit
-                            </button>
-                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteTask(task.Id)">
-                                <i class="bi bi-trash"></i> Delete
-                            </button>
+                            @if (isManager)
+                            {
+                                <button class="btn btn-sm btn-primary me-2" @onclick="() => ShowEditTaskForm(task.Id)">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteTask(task.Id)">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="text-muted">View only</span>
+                            }
                         </td>
                     </tr>
                 }
@@ -107,6 +138,7 @@ else
 
 @code {
     private List<Tasks>? tasks;
+    private List<Tasks>? allTasks;
     private List<Employees> employees = new();
     private List<int> selectedEmployeeIds = new();
     private Dictionary<int, List<Employees>> taskAssignments = new();
@@ -114,12 +146,25 @@ else
     private bool showAddTaskForm = false;
     private bool showEditTaskForm = false;
     private int selectedTaskId;
+    private bool isManager = false;
+    private string statusFilter = "all";
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            tasks = await TaskService.GetTasksAsync();
+            if (authenticationState != null)
+            {
+                var authState = await authenticationState;
+                var user = await UserManager.GetUserAsync(authState.User);
+                isManager = user?.Role == "Manager";
+            }
+
+            allTasks = await TaskService.GetTasksAsync();
+            tasks = allTasks;
             taskAssignments.Clear();
 
             if (tasks != null && tasks.Any())
@@ -133,7 +178,7 @@ else
                         var assignedEmployees = (await EmployeeService.GetEmployeesAsync())
                             .Where(e => employeeIds.Contains(e.Id))
                             .ToList();
-                        
+
                         taskAssignments[task.Id] = assignedEmployees;
                     }
                 }
@@ -144,6 +189,22 @@ else
             errorMessage = ex.Message;
             Console.WriteLine($"Error loading tasks: {ex.Message}");
         }
+    }
+
+    private void SetStatusFilter(string status)
+    {
+        statusFilter = status;
+
+        if (status == "all")
+        {
+            tasks = allTasks;
+        }
+        else
+        {
+            tasks = allTasks?.Where(t => t.Status == status).ToList();
+        }
+
+        StateHasChanged();
     }
 
     private async Task DeleteTask(int taskId)

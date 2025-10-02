@@ -1,7 +1,13 @@
 @page "/add-task"
 @using ManageFlow.Data.Models
 @using ManageFlow.Services
+@using ManageFlow.Data
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Components.Authorization
 @inject ITaskManagerService TaskService
+@inject IEmployeeService EmployeeService
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @rendermode InteractiveServer
 
 @if (!string.IsNullOrEmpty(errorMessage))
@@ -38,7 +44,7 @@
     </div>
 
    <div class="mb-3">
-        <label>Assign Employees</label>
+        <label>Assign Employees <span class="text-danger">*</span></label>
         @if (employees == null)
         {
             <p>Loading employees...</p>
@@ -53,15 +59,26 @@
                 @foreach (var employee in employees)
                 {
                     <div class="form-check">
-                        <input type="checkbox" 
-                            class="form-check-input" 
+                        <input type="checkbox"
+                            class="form-check-input"
                             id="emp_@employee.Id"
+                            checked="@selectedEmployeeIds.Contains(employee.Id)"
                             @onchange="@(e => ToggleEmployee(employee.Id, (bool)e.Value))" />
                         <label class="form-check-label" for="emp_@employee.Id">
                             @employee.FirstName @employee.LastName - @employee.Department
+                            @if (employee.UserId == currentUserId)
+                            {
+                                <span class="badge bg-info ms-2">You</span>
+                            }
                         </label>
                     </div>
                 }
+            </div>
+        }
+        @if (showValidationError)
+        {
+            <div class="text-danger mt-2">
+                <small>Please select at least one employee</small>
             </div>
         }
     </div>
@@ -74,12 +91,18 @@
     private List<int> selectedEmployeeIds = new();
     private string? errorMessage;
     private string? successMessage;
+    private string? currentUserId;
+    private bool showValidationError = false;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            employees = await TaskService.GetEmployeesAsync();
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = await UserManager.GetUserAsync(authState.User);
+            currentUserId = user?.Id;
+
+            employees = await EmployeeService.GetEmployeesAsync();
             Console.WriteLine($"Loaded {employees.Count} employees");
         }
         catch (Exception ex)
@@ -95,28 +118,38 @@
         {
             selectedEmployeeIds.Add(employeeId);
         }
-        else 
+        else
         {
             selectedEmployeeIds.Remove(employeeId);
         }
+        showValidationError = false;
         Console.WriteLine($"Selected employees: {string.Join(", ", selectedEmployeeIds)}");
     }
-    
+
     private async Task SubmitTask()
     {
         try
         {
+            if (!selectedEmployeeIds.Any())
+            {
+                showValidationError = true;
+                errorMessage = "Please select at least one employee to assign the task to.";
+                return;
+            }
+
             var newTask = await TaskService.CreateTaskAsync(task);
             if (newTask != null)
             {
                 await TaskService.AssignEmployeesToTaskAsync(newTask.Id, selectedEmployeeIds);
-                
+
                 Console.WriteLine($"Created task '{newTask.Title}' with {newTask.Id} id");
                 Console.WriteLine($"Assigned task to employees: {string.Join(", ", selectedEmployeeIds)}");
 
                 task = new() { Status = "Just Started" };
                 selectedEmployeeIds.Clear();
                 successMessage = "Task created successfully!";
+                 
+                StateHasChanged();
             }
         }
         catch (Exception e)
