@@ -26,3 +26,4 @@ Users can sign up and choose whether they're managers or employees. If an employ
 ~~Wouldn't be a proper CRUD project without this part, eh?~~ DONE! \o/
 - Expand on functionality ---> Working on this.
 - ~~When properly done with the backend somewhat, focus a bit on the frontend.~~ Finished on this, for now.
+- AI integration. Idea: Link projects from other websites (github, for example) and have AI help new employees with onboarding. 
