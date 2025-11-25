@@ -13,6 +13,7 @@
 ![alt text](https://github.com/andreeeeeea/ManageFlow/blob/main/manageflow1.png?raw=true)
 ![alt text](https://github.com/andreeeeeea/ManageFlow/blob/main/manageflowemployees.png?raw=true)
 ![alt text](https://github.com/andreeeeeea/ManageFlow/blob/main/manageflowtasks.png?raw=true)
+![alt text](https://github.com/andreeeeeea/ManageFlow/blob/main/manageflowdepartments.png?raw=true)
 
 #
 
