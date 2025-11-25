@@ -1,7 +1,10 @@
 @using ManageFlow.Data.Models
 @using ManageFlow.Services
+@using ManageFlow.Data
+@using Microsoft.EntityFrameworkCore
 
 @inject IEmployeeService EmployeeService
+@inject ApplicationDbContext DbContext
 @rendermode InteractiveServer
 
 <div class="modal-overlay">
@@ -50,7 +53,13 @@
                     </div>
                     <div class="mb-3">
                         <label for="department">Department</label>
-                        <InputText id="department" @bind-Value="editingEmployee.Department" class="form-control" />
+                        <InputSelect id="department" @bind-Value="editingEmployee.DepartmentId" class="form-control">
+                            <option value="">Select Department</option>
+                            @foreach (var dept in departments)
+                            {
+                                <option value="@dept.Id">@dept.Name</option>
+                            }
+                        </InputSelect>
                     </div>
                     <div class="mb-3">
                         <label for="position">Position</label>
@@ -112,7 +121,14 @@
     [Parameter] public int EmployeeId { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
     private Employees? editingEmployee = new Employees();
+    private List<Departments> departments = new();
     private string? errorMessage, successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        departments = await DbContext.Departments.ToListAsync();
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         try {

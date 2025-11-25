@@ -1,7 +1,10 @@
 @page "/add-employee"
 @using ManageFlow.Data.Models
 @using ManageFlow.Services
+@using ManageFlow.Data
+@using Microsoft.EntityFrameworkCore
 @inject IEmployeeService EmployeeService
+@inject ApplicationDbContext DbContext
 @rendermode InteractiveServer
 
 @if (!string.IsNullOrEmpty(errorMessage))
@@ -39,7 +42,13 @@
 
     <div class="mb-3">
         <label for="department">Department</label>
-        <InputText id="department" @bind-Value="employee.Department" class="form-control" />
+        <InputSelect id="department" @bind-Value="employee.DepartmentId" class="form-control">
+            <option value="">Select Department</option>
+            @foreach (var dept in departments)
+            {
+                <option value="@dept.Id">@dept.Name</option>
+            }
+        </InputSelect>
     </div>
 
     <div class="mb-3">
@@ -57,8 +66,14 @@
 
 @code {
     private Employees employee = new();
+    private List<Departments> departments = new();
     private string? errorMessage;
     private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        departments = await DbContext.Departments.ToListAsync();
+    }
 
     private async Task SubmitEmployee()
     {

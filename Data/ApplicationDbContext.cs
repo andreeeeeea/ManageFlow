@@ -15,10 +15,7 @@ namespace ManageFlow.Data
         public DbSet<Employees> Employees { get; set; }
         public DbSet<Tasks> Tasks { get; set; }
         public DbSet<TaskAssignments> TaskAssignments { get; set; }
-         public DbSet<Role> CustomRoles => Set<Role>();
-        public DbSet<Permission> Permissions => Set<Permission>();
-        public DbSet<UserRole> CustomUserRoles => Set<UserRole>();
-        public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+        public DbSet<Departments> Departments { get; set; } 
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -45,12 +42,23 @@ namespace ManageFlow.Data
                 .HasForeignKey<Employees>(e => e.UserId)
                 .IsRequired(false);
 
-            builder.Entity<UserRole>()
-                .HasKey(ur => new { ur.UserId, ur.RoleId });
+            builder.Entity<Departments>()
+                .HasMany(d => d.Employees)
+                .WithOne(e => e.Department)
+                .HasForeignKey(e => e.DepartmentId)
+                .OnDelete(DeleteBehavior.SetNull);
 
-            builder.Entity<RolePermission>()
-                .HasKey(rp => new { rp.RoleId, rp.PermissionId });
+            builder.Entity<Departments>()
+                .HasOne(d => d.Manager)
+                .WithMany()
+                .HasForeignKey(d => d.ManagerId)
+                .OnDelete(DeleteBehavior.SetNull);
 
+            builder.Entity<Departments>()
+                .HasMany(d => d.Tasks)
+                .WithOne(t => t.Department)
+                .HasForeignKey(t => t.DepartmentId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
         
     }

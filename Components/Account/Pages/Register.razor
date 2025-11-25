@@ -7,7 +7,7 @@
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.EntityFrameworkCore
 @using ManageFlow.Data
-
+@using ManageFlow.Data.Models
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
@@ -58,11 +58,11 @@
             <div class="mb-3">
                 <label class="form-label d-block mb-2">Are you joining as a Manager or an Employee?</label>
                 <div class="btn-group w-100" role="group">
-                    <input type="radio" class="btn-check" name="roleOptions" id="roleManager" value="Manager" @onchange="@(() => Input.Role = "Manager")" checked="@(Input.Role == "Manager")" />
+                    <input type="radio" class="btn-check" name="Input.Role" id="roleManager" value="Manager" checked="@(Input.Role == "Manager")" />
                     <label class="btn btn-outline-gradient" for="roleManager">
                         <i class="bi bi-briefcase-fill me-2"></i>Manager
                     </label>
-                    <input type="radio" class="btn-check" name="roleOptions" id="roleEmployee" value="Employee" @onchange="@(() => Input.Role = "Employee")" checked="@(Input.Role == "Employee")" />
+                    <input type="radio" class="btn-check" name="Input.Role" id="roleEmployee" value="Employee" checked="@(Input.Role == "Employee")" />
                     <label class="btn btn-outline-gradient" for="roleEmployee">
                         <i class="bi bi-person-fill me-2"></i>Employee
                     </label>
@@ -94,7 +94,6 @@
 
         user.FirstName = Input.FirstName;
         user.LastName = Input.LastName;
-        user.Role = Input.Role;
 
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
         var emailStore = GetEmailStore();
@@ -127,13 +126,26 @@
                 new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
         }
 
-                var employeeRecord = await _db.Employees.FirstOrDefaultAsync(e => e.Email == Input.Email);
+        var employeeRecord = await _db.Employees.FirstOrDefaultAsync(e => e.Email == Input.Email);
 
         if (employeeRecord != null)
         {
             employeeRecord.UserId = user.Id;
-            await _db.SaveChangesAsync();
         }
+        else
+        {
+            var newEmployee = new Employees
+            {
+                FirstName = Input.FirstName,
+                LastName = Input.LastName,
+                Email = Input.Email,
+                Position = Input.Role,
+                UserId = user.Id,
+                Salary = 0
+            };
+            _db.Employees.Add(newEmployee);
+        }
+        await _db.SaveChangesAsync();
 
         await SignInManager.SignInAsync(user, isPersistent: false);
         RedirectManager.RedirectTo(ReturnUrl);

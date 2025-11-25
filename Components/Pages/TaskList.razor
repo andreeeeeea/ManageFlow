@@ -19,28 +19,42 @@
         </div>
         @if (isManager)
         {
-            <button class="btn btn-primary" @onclick="ShowAddTaskForm">
-                <i class="bi bi-plus-circle"></i> Add New Task
+            <button class="btn btn-dark d-flex align-items-center gap-2 px-4 py-2 shadow" @onclick="ShowAddTaskForm">
+                <i class="bi bi-plus-lg"></i>
+                Add Task
             </button>
         }
     </div>
-    <div class=" w-auto d-flex gap-2 flex-wrap p-2 bg-white rounded-3 border shadow-sm">
-        <button class="btn @(statusFilter == "all" ? "btn-primary" : "btn-outline-secondary") btn-sm" @onclick='() => SetStatusFilter("all")'>
-            All
-        </button>
-        <button class="btn @(statusFilter == "Not Started" ? "btn-primary" : "btn-outline-secondary") btn-sm" @onclick='() => SetStatusFilter("Not Started")'>
-            Not Started
-        </button>
-        <button class="btn @(statusFilter == "Just Started" ? "btn-primary" : "btn-outline-secondary") btn-sm" @onclick='() => SetStatusFilter("Just Started")'>
-            Just Started
-        </button>
-        <button class="btn @(statusFilter == "In Progress" ? "btn-primary" : "btn-outline-secondary") btn-sm" @onclick='() => SetStatusFilter("In Progress")'>
-            In Progress
-        </button>
-        <button class="btn @(statusFilter == "Completed" ? "btn-primary" : "btn-outline-secondary") btn-sm" @onclick='() => SetStatusFilter("Completed")'>
-            Completed
-        </button>
+</div>
+
+<div class="mb-4">
+    <div class="position-relative">
+        <i class="bi bi-search position-absolute search-icon"></i>
+        <input
+            type="text"
+            class="form-control search-input"
+            placeholder="Search tasks..."
+            @bind="searchTerm"
+            @bind:event="oninput" />
     </div>
+</div>
+
+<div class="filter-tabs mb-4">
+    <button class="filter-tab @(statusFilter == "all" ? "active" : "")" @onclick='() => SetStatusFilter("all")'>
+        All
+    </button>
+    <button class="filter-tab @(statusFilter == "Not Started" ? "active" : "")" @onclick='() => SetStatusFilter("Not Started")'>
+        Not Started
+    </button>
+    <button class="filter-tab @(statusFilter == "Just Started" ? "active" : "")" @onclick='() => SetStatusFilter("Just Started")'>
+        Just Started
+    </button>
+    <button class="filter-tab @(statusFilter == "In Progress" ? "active" : "")" @onclick='() => SetStatusFilter("In Progress")'>
+        In Progress
+    </button>
+    <button class="filter-tab @(statusFilter == "Completed" ? "active" : "")" @onclick='() => SetStatusFilter("Completed")'>
+        Completed
+    </button>
 </div>
 
 @if (!string.IsNullOrEmpty(errorMessage))
@@ -58,7 +72,7 @@
 
 @if (showAddTaskForm)
 {
-    <AddTaskForm OnClose="@(() => showAddTaskForm = false)" />
+    <AddTaskForm OnClose="@HandleAddFormClose" />
 }
 
 @if (showEditTaskForm)
@@ -75,66 +89,232 @@
         <p class="mt-2">Loading tasks...</p>
     </div>
 }
-else if (!tasks.Any())
+else if (!FilteredTasks.Any())
 {
     <div class="empty-state text-center py-5">
-        <h4>No tasks found</h4>
-        <p class="text-muted">Start by creating your first task</p>
+        <i class="bi bi-list-check display-1 text-muted"></i>
+        <h4 class="mt-3">No tasks found</h4>
+        <p class="text-muted">@(string.IsNullOrEmpty(searchTerm) ? "Start by creating your first task" : "Try a different search term")</p>
     </div>
 }
 else
 {
-    <div class="table-responsive">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Description</th>
-                    <th>Status</th>
-                    <th>Deadline</th>
-                    <th>Assigned Employees</th>
-                    <th class="text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var task in tasks)
-                {
-                    <tr>
-                        <td>@task.Title</td>
-                        <td>@task.Description</td>
-                        <td>@task.Status</td>
-                        <td>@(task.Deadline?.ToShortDateString() ?? "No deadline")</td>
-                        <td>
-                            @if (taskAssignments.ContainsKey(task.Id))
-                            {
-                                @string.Join(", ", taskAssignments[task.Id].Select(e => $"{e.FirstName} {e.LastName}"))
-                            }
-                            else
-                            {
-                                <span>No assignments</span>
-                            }
-                        </td>
-                        <td class="text-end">
-                            @if (isManager)
-                            {
-                                <button class="btn btn-sm btn-primary me-2" @onclick="() => ShowEditTaskForm(task.Id)">
-                                    <i class="bi bi-pencil"></i> Edit
+    <div class="task-grid">
+        @foreach (var task in FilteredTasks)
+        {
+            <div class="task-card">
+                <div class="d-flex flex-column h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="task-title mb-0">@task.Title</h5>
+                        @if (isManager)
+                        {
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-icon" @onclick="() => ShowEditTaskForm(task.Id)" title="Edit">
+                                    <i class="bi bi-pencil"></i>
                                 </button>
-                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteTask(task.Id)">
-                                    <i class="bi bi-trash"></i> Delete
+                                <button class="btn btn-icon btn-icon-danger" @onclick="() => DeleteTask(task.Id)" title="Delete">
+                                    <i class="bi bi-trash"></i>
                                 </button>
-                            }
-                            else
-                            {
-                                <span class="text-muted">View only</span>
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                            </div>
+                        }
+                    </div>
+
+                    <p class="task-description">@(string.IsNullOrEmpty(task.Description) ? "No description" : task.Description)</p>
+
+                    <div class="task-details">
+                        <div class="detail-item">
+                            <i class="bi bi-calendar-event"></i>
+                            <span>@(task.Deadline?.ToShortDateString() ?? "No deadline")</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="bi bi-people"></i>
+                            <span>
+                                @if (taskAssignments.ContainsKey(task.Id) && taskAssignments[task.Id].Any())
+                                {
+                                    @string.Join(", ", taskAssignments[task.Id].Select(e => $"{e.FirstName} {e.LastName}"))
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Unassigned</span>
+                                }
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto pt-3">
+                        <span class="status-badge @GetStatusClass(task.Status)">
+                            @task.Status?.ToUpper()
+                        </span>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 }
+
+<style>
+    .search-icon {
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1rem;
+    }
+
+    .search-input {
+        padding-left: 2.75rem;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .search-input:focus {
+        border-color: #64748b;
+        box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.15);
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        padding: 0.5rem;
+        background: white;
+        border-radius: 0.75rem;
+        border: 1px solid #e2e8f0;
+    }
+
+    .filter-tab {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: transparent;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #64748b;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .filter-tab:hover {
+        background: #f1f5f9;
+        color: #334155;
+    }
+
+    .filter-tab.active {
+        background: #1e293b;
+        color: white;
+    }
+
+    .task-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .task-card {
+        background: white;
+        border-radius: 0.75rem;
+        border: 1px solid #e2e8f0;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.2s ease;
+    }
+
+    .task-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .task-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .task-description {
+        font-size: 0.95rem;
+        color: #64748b;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+
+    .task-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .detail-item i {
+        font-size: 0.875rem;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.375rem 0.875rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+    }
+
+    .status-not-started {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .status-just-started {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-in-progress {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-completed {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .btn-icon {
+        width: 2rem;
+        height: 2rem;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.375rem;
+        background: transparent;
+        border: none;
+        color: #64748b;
+        transition: all 0.15s ease;
+    }
+
+    .btn-icon:hover {
+        background: #f1f5f9;
+        color: #334155;
+    }
+
+    .btn-icon-danger:hover {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .empty-state i {
+        opacity: 0.3;
+    }
+</style>
 
 @code {
     private List<Tasks>? tasks;
@@ -142,12 +322,20 @@ else
     private List<Employees> employees = new();
     private List<int> selectedEmployeeIds = new();
     private Dictionary<int, List<Employees>> taskAssignments = new();
+    private string searchTerm = "";
     private string? errorMessage, successMessage;
     private bool showAddTaskForm = false;
     private bool showEditTaskForm = false;
     private int selectedTaskId;
     private bool isManager = false;
     private string statusFilter = "all";
+
+    private IEnumerable<Tasks> FilteredTasks =>
+        tasks?.Where(t =>
+            string.IsNullOrEmpty(searchTerm) ||
+            t.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+            (t.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+        ) ?? Enumerable.Empty<Tasks>();
 
     [CascadingParameter]
     private Task<AuthenticationState>? authenticationState { get; set; }
@@ -160,7 +348,11 @@ else
             {
                 var authState = await authenticationState;
                 var user = await UserManager.GetUserAsync(authState.User);
-                isManager = user?.Role == "Manager";
+                if (user != null)
+                {
+                    isManager = await UserManager.IsInRoleAsync(user, "Manager")
+                             || await UserManager.IsInRoleAsync(user, "Admin");
+                }
             }
 
             allTasks = await TaskService.GetTasksAsync();
@@ -191,6 +383,15 @@ else
         }
     }
 
+    private string GetStatusClass(string? status) => status switch
+    {
+        "Not Started" => "status-not-started",
+        "Just Started" => "status-just-started",
+        "In Progress" => "status-in-progress",
+        "Completed" => "status-completed",
+        _ => "status-not-started"
+    };
+
     private void SetStatusFilter(string status)
     {
         statusFilter = status;
@@ -209,7 +410,7 @@ else
 
     private async Task DeleteTask(int taskId)
     {
-        try 
+        try
         {
             await TaskService.DeleteTaskAsync(taskId);
             await OnInitializedAsync();
@@ -244,10 +445,17 @@ else
         StateHasChanged();
     }
 
+    private async Task HandleAddFormClose()
+    {
+        showAddTaskForm = false;
+        await OnInitializedAsync();
+        StateHasChanged();
+    }
+
     private async Task HandleEditFormClose()
     {
         showEditTaskForm = false;
-        await OnInitializedAsync(); // Refresh the task list
+        await OnInitializedAsync();
         StateHasChanged();
     }
 }

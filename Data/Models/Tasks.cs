@@ -1,3 +1,5 @@
+using Humanizer;
+
 namespace ManageFlow.Data.Models
 {
     public class Tasks
@@ -7,6 +9,8 @@ namespace ManageFlow.Data.Models
         public string Description { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public DateTime? Deadline { get; set; }
+        public int? DepartmentId { get; set; }
+        public virtual Departments? Department { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public ICollection<TaskAssignments> TaskAssignments { get; set; } = new List<TaskAssignments>();

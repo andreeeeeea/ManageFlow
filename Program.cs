@@ -17,6 +17,7 @@ public class Program
 
         builder.Services.AddScoped<ITaskManagerService, TaskManagerService>();
         builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+        builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 
         // Add services to the container.
         builder.Services.AddRazorComponents()
@@ -47,20 +48,19 @@ public class Program
         builder.Services.AddAuthorization(options =>
         {
             options.AddPolicy("CanViewEmployees", policy =>
-                policy.RequireClaim("Permission", "Employees.View"));
+                policy.RequireRole("Manager", "Employee", "Admin"));
             options.AddPolicy("CanManageEmployees", policy =>
-                policy.RequireClaim("Permission", "Employees.Create", "Employees.Update", "Employees.Delete"));
-
+                policy.RequireRole("Manager", "Admin"));
+            
             options.AddPolicy("CanViewTasks", policy =>
-                policy.RequireClaim("Permission", "Tasks.View"));
+                policy.RequireRole("Manager", "Employee", "Admin"));
             options.AddPolicy("CanManageTasks", policy =>
-                policy.RequireClaim("Permission", "Tasks.Create", "Tasks.Update", "Tasks.Delete")); 
+                policy.RequireRole("Manager", "Admin"));
             
             options.AddPolicy("IsAdmin", policy =>
                 policy.RequireRole("Administrator"));
         });
 
-        // If you are not using an email sender in production, you can configure it here as below:
         builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
         var app = builder.Build();

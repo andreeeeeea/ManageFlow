@@ -1,0 +1,52 @@
+@page "/add-department"
+@using ManageFlow.Data.Models
+@using ManageFlow.Services
+@inject IDepartmentService DepartmentService
+@inject IEmployeeService EmployeeService
+@rendermode InteractiveServer
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @errorMessage
+    </div>
+}
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success" role="alert">
+        @successMessage
+    </div>
+}
+
+<h3> Add New Department</h3>
+<EditForm Model="@department" OnValidSubmit="@SubmitDepartment">
+    <DataAnnotationsValidator />
+</EditForm>
+
+@code {
+    private Departments department = new Departments();
+    private List<Employees> possibleManagers = new List<Employees>();
+    private string? errorMessage;
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        possibleManagers = await EmployeeService.GetEmployeesAsync();
+    }
+
+    private async Task SubmitDepartment()
+    {
+        try
+        {
+            await DepartmentService.CreateDepartmentAsync(department);
+            successMessage = "Department added successfully!";
+            errorMessage = null;
+            department = new Departments();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error adding department: {ex.Message}";
+            successMessage = null;
+        }
+    }
+}

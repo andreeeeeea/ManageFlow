@@ -1,0 +1,127 @@
+@using ManageFlow.Data.Models
+@using ManageFlow.Services
+@inject IDepartmentService DepartmentService
+@inject IEmployeeService EmployeeService
+@rendermode InteractiveServer
+
+<div class="modal-overlay">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Department</h3>
+                <button type="button" class="btn-close" @onclick="OnClose"></button>
+            </div>
+
+            <div class="modal-body">
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @errorMessage
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div class="alert alert-success" role="alert">
+                        @successMessage
+                    </div>
+                }
+                <EditForm Model="@department" OnValidSubmit="@SubmitDepartment">
+                    <DataAnnotationsValidator />
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Department Name</label>
+                        <InputText id="name" @bind-Value="department.Name" class="form-control" placeholder="e.g. Engineering, Sales" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <InputTextArea id="description" @bind-Value="department.Description" class="form-control" placeholder="Brief description of the department" rows="3" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="manager" class="form-label">Department Head</label>
+                        <InputSelect id="manager" @bind-Value="department.ManagerId" class="form-control">
+                            <option value="">Select Department Head (Optional)</option>
+                            @foreach (var employee in possibleManagers)
+                            {
+                                <option value="@employee.Id">@employee.FirstName @employee.LastName</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Add Department</button>
+                    <button type="button" class="btn btn-secondary" @onclick="OnClose">Cancel</button>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1050;
+    }
+
+    .modal-dialog {
+        width: 90%;
+        max-width: 600px;
+        margin: 1.75rem auto;
+    }
+
+    .modal-content {
+        background-color: white;
+        border-radius: 0.3rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        z-index: 1060;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .modal-body {
+        padding: 1rem;
+    }
+</style>
+
+@code {
+    private Departments department = new();
+    private List<Employees> possibleManagers = new();
+    private string? errorMessage;
+    private string? successMessage;
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        possibleManagers = await EmployeeService.GetEmployeesAsync();
+    }
+
+    private async Task SubmitDepartment()
+    {
+        try
+        {
+            await DepartmentService.CreateDepartmentAsync(department);
+            successMessage = "Department created successfully!";
+            await Task.Delay(1500);
+            await OnClose.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+            Console.WriteLine($"Error creating department: {ex.Message}");
+        }
+    }
+}

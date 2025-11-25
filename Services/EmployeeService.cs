@@ -15,12 +15,17 @@ namespace ManageFlow.Services
 
         public async Task<List<Employees>> GetEmployeesAsync()
         {
-            return await _context.Employees.ToListAsync();
+            return await _context.Employees
+                .Include(e => e.Department)
+                .ToListAsync();
         }
 
         public async Task<Dictionary<string, int>> GetEmployeeRolesCountAsync()
         {
-            return await _context.Employees.GroupBy(e => e.Department).ToDictionaryAsync(g => g.Key, g => g.Count());
+            return await _context.Employees
+                .Where(e => e.Department != null)
+                .GroupBy(e => e.Department!.Name)
+                .ToDictionaryAsync(g => g.Key, g => g.Count());
         }
         
 
@@ -39,7 +44,7 @@ namespace ManageFlow.Services
             {
                 existingEmployee.FirstName = employee.FirstName;
                 existingEmployee.LastName = employee.LastName;
-                existingEmployee.Department = employee.Department;
+                existingEmployee.DepartmentId = employee.DepartmentId;                
                 existingEmployee.Position = employee.Position;
                 existingEmployee.Salary = employee.Salary;
 
