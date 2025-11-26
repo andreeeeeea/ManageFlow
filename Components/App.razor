@@ -1,10 +1,18 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : '');
+        })();
+    </script>
     <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["ManageFlow.styles.css"]" />
@@ -17,7 +25,31 @@
 
 <body>
     <Routes />
+    <script>
+        window.themeManager = {
+            isDark: function() {
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme) return savedTheme === 'dark';
+                return window.matchMedia('(prefers-color-scheme: dark)').matches;
+            },
+            setTheme: function(theme) {
+                localStorage.setItem('theme', theme);
+                document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : '');
+            },
+            applyTheme: function() {
+                const savedTheme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : '');
+            }
+        };
+    </script>
     <script src="_framework/blazor.web.js"></script>
+    <script>
+        Blazor.addEventListener('enhancedload', function() {
+            window.themeManager.applyTheme();
+        });
+    </script>
 </body>
 
 </html>

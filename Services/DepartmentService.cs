@@ -72,7 +72,7 @@ namespace ManageFlow.Services
                 .ToListAsync();
         }
 
-        public async Task<List<Tasks>> GetDepartmentTasksByStatusAsync(int departmentId, string status)
+        public async Task<List<Tasks>> GetDepartmentTasksByStatusAsync(int departmentId, WorkStatus status)
         {
             return await _context.Tasks
                 .Where(t => t.DepartmentId == departmentId && t.Status == status)

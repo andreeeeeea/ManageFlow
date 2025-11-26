@@ -40,31 +40,44 @@
                 {
                 <EditForm Model="@editingTask" OnValidSubmit="@SaveTask">
                     <div class="mb-3">
-                        <label for="title">Title</label>
+                        <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
                         <InputText id="title" @bind-Value="editingTask.Title" class="form-control" />
                     </div>
 
                     <div class="mb-3">
-                        <label for="description">Description</label>
+                        <label for="description" class="form-label">Description</label>
                         <InputText id="description" @bind-Value="editingTask.Description" class="form-control" />
                     </div>
 
-                    <div class="mb-3">
-                        <label for="status">Status</label>
-                        <InputSelect id="status" @bind-Value="editingTask.Status" class="form-control">
-                            <option value="Just Started">Just Started</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Completed">Completed</option>
-                        </InputSelect>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                            <InputSelect id="status" @bind-Value="editingTask.Status" class="form-control">
+                                @foreach (var status in Enum.GetValues<WorkStatus>())
+                                {
+                                    <option value="@status">@FormatEnumName(status.ToString())</option>
+                                }
+                            </InputSelect>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="priority" class="form-label">Priority <span class="text-danger">*</span></label>
+                            <InputSelect id="priority" @bind-Value="editingTask.Priority" class="form-control">
+                                @foreach (var priority in Enum.GetValues<TaskPriority>())
+                                {
+                                    <option value="@priority">@priority</option>
+                                }
+                            </InputSelect>
+                        </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="deadline">Deadline</label>
+                        <label for="deadline" class="form-label">Deadline</label>
                         <InputDate id="deadline" @bind-Value="editingTask.Deadline" class="form-control" />
                     </div>
 
                     <div class="mb-3">
-                        <label>Assign Employees</label>
+                        <label class="form-label">Assign To <span class="text-danger">*</span></label>
                         @if (employees == null)
                         {
                             <p>Loading employees...</p>
@@ -75,18 +88,30 @@
                         }
                         else
                         {
-                            <div class="list-group">
-                                @foreach (var employee in employees)
+                            <div class="dropdown-multiselect">
+                                <button type="button" class="form-control dropdown-toggle-btn" @onclick="ToggleDropdown" @onclick:preventDefault @onclick:stopPropagation>
+                                    @if (selectedEmployeeIds != null && selectedEmployeeIds.Any())
+                                    {
+                                        <span>@selectedEmployeeIds.Count employee(s) selected</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Select employees...</span>
+                                    }
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                                @if (showDropdown)
                                 {
-                                    <div class="form-check">
-                                        <input type="checkbox" 
-                                            class="form-check-input" 
-                                            id="emp_@employee.Id"
-                                            checked="@selectedEmployeeIds.Contains(employee.Id)"
-                                            @onchange="@(() => ToggleEmployee(employee.Id))" />
-                                        <label class="form-check-label" for="emp_@employee.Id">
-                                            @employee.FirstName @employee.LastName - @employee.Department
-                                        </label>
+                                    <div class="dropdown-menu-custom show">
+                                        @foreach (var employee in employees)
+                                        {
+                                            <label class="dropdown-item-check">
+                                                <input type="checkbox"
+                                                    checked="@(selectedEmployeeIds?.Contains(employee.Id) ?? false)"
+                                                    @onchange="@(e => ToggleEmployee(employee.Id, (bool)e.Value!))" />
+                                                <span>@employee.FirstName @employee.LastName@(employee.Department != null ? $" - {employee.Department.Name}" : "")</span>
+                                            </label>
+                                        }
                                     </div>
                                 }
                             </div>
@@ -122,9 +147,9 @@
     }
 
     .modal-content {
-        background-color: white;
+        background-color: var(--bg-secondary);
         border-radius: 0.3rem;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        box-shadow: var(--card-shadow);
         z-index: 1060;
     }
 
@@ -133,11 +158,64 @@
         justify-content: space-between;
         align-items: center;
         padding: 1rem;
-        border-bottom: 1px solid #dee2e6;
+        border-bottom: 1px solid var(--border-color);
     }
 
     .modal-body {
         padding: 1rem;
+    }
+
+    .dropdown-multiselect {
+        position: relative;
+    }
+
+    .dropdown-toggle-btn {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+        cursor: pointer;
+        background-color: var(--input-bg);
+        color: var(--text-primary);
+    }
+
+    .dropdown-toggle-btn:hover {
+        border-color: #667eea;
+    }
+
+    .dropdown-menu-custom {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        box-shadow: var(--card-shadow);
+        margin-top: 0.25rem;
+    }
+
+    .dropdown-item-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        color: var(--text-primary);
+        transition: background-color 0.15s ease;
+    }
+
+    .dropdown-item-check:hover {
+        background-color: var(--bg-hover);
+    }
+
+    .dropdown-item-check input[type="checkbox"] {
+        width: 1rem;
+        height: 1rem;
+        cursor: pointer;
     }
 </style>
 
@@ -148,6 +226,14 @@
     private List<Employees>? employees = new();
     private List<int>? selectedEmployeeIds = new();
     private string? errorMessage, successMessage;
+    private bool showDropdown = false;
+
+    private string FormatEnumName(string name) => System.Text.RegularExpressions.Regex.Replace(name, "(\\B[A-Z])", " $1");
+
+    private void ToggleDropdown()
+    {
+        showDropdown = !showDropdown;
+    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -186,12 +272,19 @@
             Console.WriteLine($"Error saving task: {ex.Message}");
         }
     }
-    private void ToggleEmployee(int employeeId)
+    private void ToggleEmployee(int employeeId, bool isSelected)
     {
-        if (selectedEmployeeIds.Contains(employeeId))
-            selectedEmployeeIds.Remove(employeeId);
+        if (selectedEmployeeIds == null) return;
+
+        if (isSelected)
+        {
+            if (!selectedEmployeeIds.Contains(employeeId))
+                selectedEmployeeIds.Add(employeeId);
+        }
         else
-            selectedEmployeeIds.Add(employeeId);
+        {
+            selectedEmployeeIds.Remove(employeeId);
+        }
     }
     private async Task CancelEdit()
     {

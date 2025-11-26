@@ -19,7 +19,6 @@ public class Program
         builder.Services.AddScoped<IEmployeeService, EmployeeService>();
         builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 
-        // Add services to the container.
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
 
@@ -28,7 +27,6 @@ public class Program
         builder.Services.AddScoped<IdentityRedirectManager>();
         builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
-        // Configure AppContext to use legacy timestamp behavior for PostgreSQL
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -71,7 +69,6 @@ public class Program
             await SeedData.Initialize(services);
         }
 
-        // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
          {
             app.UseMigrationsEndPoint();
@@ -90,7 +87,6 @@ public class Program
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode();
 
-        // Add additional endpoints required by the Identity /Account Razor components.
         app.MapAdditionalIdentityEndpoints();
 
         app.Run();

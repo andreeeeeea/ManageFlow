@@ -11,6 +11,6 @@ public interface IDepartmentService
     Task<Employees?> GetDepartmentManagerAsync(int departmentId);
     Task<List<Employees>> GetDepartmentEmployeesAsync(int departmentId);
     Task<List<Tasks>> GetDepartmentTasksAsync(int departmentId);
-    Task<List<Tasks>> GetDepartmentTasksByStatusAsync(int departmentId, string status);
+    Task<List<Tasks>> GetDepartmentTasksByStatusAsync(int departmentId, WorkStatus status);
     Task DeleteDepartmentAsync(int departmentId);
 }

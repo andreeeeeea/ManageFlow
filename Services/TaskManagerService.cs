@@ -79,27 +79,27 @@ public class TaskManagerService : ITaskManagerService
         return await _context.Tasks
             .Include(t => t.TaskAssignments)
             .ThenInclude(ta => ta.Employee)
-            .Where(task => task.Status == "Completed")
+            .Where(task => task.Status == WorkStatus.Completed)
             .ToListAsync();
     }
 
     public async Task<List<Tasks>> GetInProgressTasksAsync()
     {
-        return await _context.Tasks.Where(task => task.Status == "In Progress").ToListAsync();
+        return await _context.Tasks.Where(task => task.Status == WorkStatus.InProgress).ToListAsync();
     }
     public async Task<List<Tasks>> GetNotStartedTasksAsync()
     {
-        return await _context.Tasks.Where(task => task.Status == "Not Started").ToListAsync();
+        return await _context.Tasks.Where(task => task.Status == WorkStatus.ToDo).ToListAsync();
     }
     public async Task<List<Tasks>> GetTodayTasksAsync()
     {
         var today = DateTime.Today;
-        return await _context.Tasks.Where(task => task.Status != "Completed" &&  task.Deadline == today).ToListAsync();
+        return await _context.Tasks.Where(task => task.Status != WorkStatus.Completed &&  task.Deadline == today).ToListAsync();
     }
     public async Task<List<Tasks>> GetTomorrowTasksAsync()
     {
         var tomorrow = DateTime.Today.AddDays(1);
-        return await _context.Tasks.Where(task => task.Status != "Completed" &&  task.Deadline == tomorrow).ToListAsync();
+        return await _context.Tasks.Where(task => task.Status != WorkStatus.Completed &&  task.Deadline == tomorrow).ToListAsync();
     }
     public async Task<List<Tasks>> GetUpcomingTasksAsync()
     {
@@ -107,7 +107,7 @@ public class TaskManagerService : ITaskManagerService
         return await _context.Tasks
             .Include(t => t.TaskAssignments)
             .ThenInclude(ta => ta.Employee)
-            .Where(task => task.Status != "Completed" && task.Deadline >= DateTime.Today && task.Deadline <= week)
+            .Where(task => task.Status != WorkStatus.Completed && task.Deadline >= DateTime.Today && task.Deadline <= week)
             .ToListAsync();
     }
     public async Task<List<Tasks>> GetOverdueTasksAsync()
@@ -116,7 +116,7 @@ public class TaskManagerService : ITaskManagerService
         return await _context.Tasks
             .Include(t => t.TaskAssignments)
             .ThenInclude(ta => ta.Employee)
-            .Where(task => task.Status != "Completed" && task.Deadline < today)
+            .Where(task => task.Status != WorkStatus.Completed && task.Deadline < today)
             .ToListAsync();
     }
 

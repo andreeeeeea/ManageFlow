@@ -12,7 +12,7 @@
 <div class="page-header">
     <div class="d-flex justify-content-between align-items-center">
         <div>
-            <h2 class="page-title mb-1">👥 Employee Directory</h2>
+            <h2 class="page-title mb-1"><i class="bi bi-people-fill me-2"></i>Employee Directory</h2>
             <p class="text-muted mb-0">Manage your team and their information</p>
         </div>
         @if (isManager)
@@ -141,7 +141,7 @@ else
         left: 1rem;
         top: 50%;
         transform: translateY(-50%);
-        color: #94a3b8;
+        color: var(--text-muted);
         font-size: 1rem;
     }
 
@@ -149,14 +149,16 @@ else
         padding-left: 2.75rem;
         padding-top: 0.75rem;
         padding-bottom: 0.75rem;
-        border: 1px solid #cbd5e1;
+        border: 1px solid var(--input-border);
         border-radius: 0.5rem;
         font-size: 1rem;
+        background-color: var(--input-bg);
+        color: var(--text-primary);
     }
 
     .search-input:focus {
-        border-color: #64748b;
-        box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.15);
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
     }
 
     .employee-grid {
@@ -166,16 +168,16 @@ else
     }
 
     .employee-card {
-        background: white;
+        background: var(--bg-secondary);
         border-radius: 0.75rem;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--border-color);
         padding: 1.5rem;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         transition: box-shadow 0.2s ease;
     }
 
     .employee-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--card-shadow);
     }
 
     .employee-avatar {
@@ -195,20 +197,20 @@ else
     .employee-name {
         font-size: 1.125rem;
         font-weight: 600;
-        color: #1e293b;
+        color: var(--text-primary);
     }
 
     .you-badge {
         font-size: 0.75rem;
         font-weight: 500;
-        color: #0d6efd;
+        color: #667eea;
         margin-left: 0.5rem;
         vertical-align: middle;
     }
 
     .employee-position {
         font-size: 0.95rem;
-        color: #475569;
+        color: var(--text-secondary);
         font-weight: 500;
     }
 
@@ -217,7 +219,7 @@ else
         flex-wrap: wrap;
         gap: 1rem;
         font-size: 0.875rem;
-        color: #64748b;
+        color: var(--text-muted);
     }
 
     .detail-item {
@@ -240,18 +242,18 @@ else
         border-radius: 0.5rem;
         background: transparent;
         border: none;
-        color: #64748b;
+        color: var(--text-secondary);
         transition: all 0.15s ease;
     }
 
     .btn-icon:hover {
-        background: #f1f5f9;
-        color: #334155;
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
     }
 
     .btn-icon-danger:hover {
-        background: #fef2f2;
-        color: #dc2626;
+        background: #7f1d1d;
+        color: #fecaca;
     }
 
     .empty-state i {

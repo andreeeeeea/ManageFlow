@@ -6,7 +6,7 @@
 
 main {
     flex: 1;
-    background-color: #f8fafc;
+    background-color: transparent;
 }
 
 .full-page {
@@ -18,9 +18,9 @@ main {
 }
 
 .sidebar {
-    background: linear-gradient(180deg, #ffffff 0%, #f8f9ff 100%);
+    background: var(--sidebar-bg);
     box-shadow: 5px 0 25px rgba(0, 0, 0, 0.08);
-    border-right: 1px solid rgba(0, 0, 0, 0.05);
+    border-right: 1px solid var(--border-color);
 }
 
 .top-row {

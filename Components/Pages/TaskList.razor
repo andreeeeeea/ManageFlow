@@ -14,7 +14,7 @@
 <div class="page-header">
     <div class="d-flex justify-content-between align-items-center">
         <div>
-            <h2 class="page-title mb-1">📋 Task Management</h2>
+            <h2 class="page-title mb-1"><i class="bi bi-list-check me-2"></i>Task Management</h2>
             <p class="text-muted mb-0">Track and manage all your tasks in one place</p>
         </div>
         @if (isManager)
@@ -39,21 +39,15 @@
     </div>
 
     <div class="filter-tabs">
-        <button class="filter-tab @(statusFilter == "all" ? "active" : "")" @onclick='() => SetStatusFilter("all")'>
+        <button class="filter-tab @(statusFilter == null ? "active" : "")" @onclick="() => SetStatusFilter(null)">
             All
         </button>
-        <button class="filter-tab @(statusFilter == "Not Started" ? "active" : "")" @onclick='() => SetStatusFilter("Not Started")'>
-            Not Started
-        </button>
-        <button class="filter-tab @(statusFilter == "Just Started" ? "active" : "")" @onclick='() => SetStatusFilter("Just Started")'>
-            Just Started
-        </button>
-        <button class="filter-tab @(statusFilter == "In Progress" ? "active" : "")" @onclick='() => SetStatusFilter("In Progress")'>
-            In Progress
-        </button>
-        <button class="filter-tab @(statusFilter == "Completed" ? "active" : "")" @onclick='() => SetStatusFilter("Completed")'>
-            Completed
-        </button>
+        @foreach (var status in Enum.GetValues<WorkStatus>())
+        {
+            <button class="filter-tab @(statusFilter == status ? "active" : "")" @onclick="() => SetStatusFilter(status)">
+                @FormatEnumName(status.ToString())
+            </button>
+        }
     </div>
 </div>
 
@@ -141,9 +135,12 @@ else
                         </div>
                     </div>
 
-                    <div class="mt-auto pt-3">
+                    <div class="mt-auto pt-3 d-flex gap-2 flex-wrap">
                         <span class="status-badge @GetStatusClass(task.Status)">
-                            @task.Status?.ToUpper()
+                            @FormatEnumName(task.Status.ToString()).ToUpper()
+                        </span>
+                        <span class="priority-badge @GetPriorityClass(task.Priority)">
+                            @task.Priority.ToString().ToUpper()
                         </span>
                     </div>
                 </div>
@@ -157,7 +154,7 @@ else
         left: 1rem;
         top: 50%;
         transform: translateY(-50%);
-        color: #94a3b8;
+        color: var(--text-muted);
         font-size: 1rem;
     }
 
@@ -165,14 +162,16 @@ else
         padding-left: 2.75rem;
         padding-top: 0.75rem;
         padding-bottom: 0.75rem;
-        border: 1px solid #cbd5e1;
+        border: 1px solid var(--input-border);
         border-radius: 0.5rem;
         font-size: 1rem;
+        background-color: var(--input-bg);
+        color: var(--text-primary);
     }
 
     .search-input:focus {
-        border-color: #64748b;
-        box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.15);
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
     }
 
     .filter-tabs {
@@ -180,9 +179,9 @@ else
         gap: 0.5rem;
         flex-wrap: wrap;
         padding: 0.5rem;
-        background: white;
+        background: var(--bg-secondary);
         border-radius: 0.75rem;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--border-color);
     }
 
     .filter-tab {
@@ -192,14 +191,14 @@ else
         border-radius: 0.5rem;
         font-size: 0.875rem;
         font-weight: 500;
-        color: #64748b;
+        color: var(--text-secondary);
         cursor: pointer;
         transition: all 0.15s ease;
     }
 
     .filter-tab:hover {
-        background: #f1f5f9;
-        color: #334155;
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
     }
 
     .filter-tab.active {
@@ -214,27 +213,27 @@ else
     }
 
     .task-card {
-        background: white;
+        background: var(--bg-secondary);
         border-radius: 0.75rem;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--border-color);
         padding: 1.5rem;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         transition: box-shadow 0.2s ease;
     }
 
     .task-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--card-shadow);
     }
 
     .task-title {
         font-size: 1.125rem;
         font-weight: 600;
-        color: #1e293b;
+        color: var(--text-primary);
     }
 
     .task-description {
         font-size: 0.95rem;
-        color: #64748b;
+        color: var(--text-secondary);
         margin-bottom: 1rem;
         line-height: 1.5;
     }
@@ -244,7 +243,7 @@ else
         flex-wrap: wrap;
         gap: 1rem;
         font-size: 0.875rem;
-        color: #64748b;
+        color: var(--text-secondary);
     }
 
     .detail-item {
@@ -268,23 +267,63 @@ else
     }
 
     .status-not-started {
-        background: #f1f5f9;
-        color: #475569;
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
     }
 
     .status-just-started {
-        background: #fef3c7;
-        color: #92400e;
+        background: #78350f;
+        color: #fef3c7;
     }
 
     .status-in-progress {
-        background: #dbeafe;
-        color: #1e40af;
+        background: #1e40af;
+        color: #dbeafe;
     }
 
     .status-completed {
-        background: #dcfce7;
-        color: #166534;
+        background: #166534;
+        color: #dcfce7;
+    }
+
+    .status-on-hold {
+        background: #7c3aed;
+        color: #ede9fe;
+    }
+
+    .status-cancelled {
+        background: #6b7280;
+        color: #f3f4f6;
+    }
+
+    .priority-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.375rem 0.875rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+    }
+
+    .priority-low {
+        background: #6b7280;
+        color: #f3f4f6;
+    }
+
+    .priority-medium {
+        background: #2563eb;
+        color: #dbeafe;
+    }
+
+    .priority-high {
+        background: #ea580c;
+        color: #fff7ed;
+    }
+
+    .priority-critical {
+        background: #dc2626;
+        color: #fef2f2;
     }
 
     .btn-icon {
@@ -297,18 +336,18 @@ else
         border-radius: 0.375rem;
         background: transparent;
         border: none;
-        color: #64748b;
+        color: var(--text-secondary);
         transition: all 0.15s ease;
     }
 
     .btn-icon:hover {
-        background: #f1f5f9;
-        color: #334155;
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
     }
 
     .btn-icon-danger:hover {
-        background: #fef2f2;
-        color: #dc2626;
+        background: #7f1d1d;
+        color: #fecaca;
     }
 
     .empty-state i {
@@ -328,7 +367,9 @@ else
     private bool showEditTaskForm = false;
     private int selectedTaskId;
     private bool isManager = false;
-    private string statusFilter = "all";
+    private WorkStatus? statusFilter = null;
+
+    private string FormatEnumName(string name) => System.Text.RegularExpressions.Regex.Replace(name, "(\\B[A-Z])", " $1");
 
     private IEnumerable<Tasks> FilteredTasks =>
         tasks?.Where(t =>
@@ -383,20 +424,30 @@ else
         }
     }
 
-    private string GetStatusClass(string? status) => status switch
+    private string GetStatusClass(WorkStatus status) => status switch
     {
-        "Not Started" => "status-not-started",
-        "Just Started" => "status-just-started",
-        "In Progress" => "status-in-progress",
-        "Completed" => "status-completed",
+        WorkStatus.ToDo => "status-not-started",
+        WorkStatus.InProgress => "status-in-progress",
+        WorkStatus.Completed => "status-completed",
+        WorkStatus.OnHold => "status-on-hold",
+        WorkStatus.Cancelled => "status-cancelled",
         _ => "status-not-started"
     };
 
-    private void SetStatusFilter(string status)
+    private string GetPriorityClass(TaskPriority priority) => priority switch
+    {
+        TaskPriority.Low => "priority-low",
+        TaskPriority.Medium => "priority-medium",
+        TaskPriority.High => "priority-high",
+        TaskPriority.Critical => "priority-critical",
+        _ => "priority-medium"
+    };
+
+    private void SetStatusFilter(WorkStatus? status)
     {
         statusFilter = status;
 
-        if (status == "all")
+        if (status == null)
         {
             tasks = allTasks;
         }

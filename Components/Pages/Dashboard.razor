@@ -122,7 +122,7 @@
                                     <span class="recent-task-title">@task.Title</span>
                                     <span class="recent-task-meta">@GetAssignedEmployees(task)</span>
                                 </div>
-                                <span class="recent-task-status @GetStatusClass(task.Status)">@task.Status</span>
+                                <span class="recent-task-status @GetStatusClass(task.Status)">@FormatEnumName(task.Status.ToString())</span>
                             </div>
                         }
                     }
@@ -130,7 +130,7 @@
             </div>
         </div>
         <div class="tasks-section">
-            <div class="task-column">
+            <div class="task-card">
                 <div class="task-column-header task-column-overdue">
                     <div class="header-with-icon">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -160,7 +160,7 @@
                 </div>
             </div>
 
-            <div class="task-column">
+            <div class="task-card">
                 <div class="task-column-header task-column-upcoming">
                     <div class="header-with-icon">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -191,7 +191,7 @@
                 </div>
             </div>
 
-            <div class="task-column">
+            <div class="task-card">
                 <div class="task-column-header task-column-completed">
                     <div class="header-with-icon">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -236,19 +236,19 @@
 }
 
 .stat-box {
-    background: white;
+    background: var(--bg-secondary);
     padding: 1.75rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1.25rem;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-color);
     border-radius: 0.75rem;
     transition: all 0.2s ease;
 }
 
 .stat-box:hover {
-    border-color: #cbd5e1;
+    border-color: var(--border-color);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
@@ -257,7 +257,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #1f2a44;
+    color: var(--text-primary);
 }
 
 .stat-icon-wrapper svg {
@@ -273,21 +273,21 @@
 .stat-value {
     font-size: 2rem;
     font-weight: 600;
-    color: #1f2a44;
+    color: var(--text-primary);
     line-height: 1;
 }
 
 .stat-text {
     font-size: 0.8rem;
-    color: #666;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     font-weight: 500;
 }
 
 .status-breakdown {
-    background: white;
-    border: 1px solid #e2e8f0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     border-radius: 0.75rem;
     padding: 2rem;
 }
@@ -295,7 +295,7 @@
 .breakdown-title {
     font-size: 1rem;
     font-weight: 600;
-    color: #1f2a44;
+    color: var(--text-primary);
     margin: 0 0 1.5rem 0;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -322,19 +322,19 @@
 .status-name {
     font-size: 0.9rem;
     font-weight: 500;
-    color: #1f2a44;
+    color: var(--text-primary);
 }
 
 .status-count {
     font-size: 1.5rem;
-    color: #1f2a44;
+    color: var(--text-primary);
     font-weight: 600;
 }
 
 .progress-bar {
     width: 100%;
     height: 8px;
-    background: #f3f4f6;
+    background: var(--bg-tertiary);
     border-radius: 4px;
     overflow: hidden;
 }
@@ -364,8 +364,8 @@
 }
 
 .recent-tasks-container {
-    background: white;
-    border: 1px solid #e2e8f0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     border-radius: 0.75rem;
     padding: 2rem;
     display: flex;
@@ -379,6 +379,12 @@
     gap: 0.75rem;
     overflow-y: auto;
     flex: 1;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.recent-tasks-list::-webkit-scrollbar {
+    display: none;
 }
 
 .recent-task-item {
@@ -386,14 +392,14 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem 1rem;
-    background: #fafafa;
+    background: var(--bg-tertiary);
     border-radius: 0.5rem;
-    border-left: 3px solid #e2e8f0;
+    border-left: 3px solid var(--border-color);
     transition: all 0.15s ease;
 }
 
 .recent-task-item:hover {
-    background: #f5f5f5;
+    background: var(--bg-hover);
 }
 
 .recent-task-info {
@@ -407,7 +413,7 @@
 .recent-task-title {
     font-size: 0.95rem;
     font-weight: 500;
-    color: #1f2a44;
+    color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -415,7 +421,7 @@
 
 .recent-task-meta {
     font-size: 0.8rem;
-    color: #888;
+    color: var(--text-muted);
 }
 
 .recent-task-status {
@@ -442,10 +448,29 @@
     color: #059669;
 }
 
+.status-on-hold {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.status-cancelled {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
 .tasks-section {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 2rem;
+    gap: 1.5rem;
+}
+
+.task-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
 }
 
 .task-column {
@@ -459,7 +484,7 @@
     align-items: baseline;
     margin-bottom: 1rem;
     padding-bottom: 0.75rem;
-    border-bottom: 2px solid #1f2a44;
+    border-bottom: 2px solid var(--text-primary);
 }
 
 .header-with-icon {
@@ -475,7 +500,7 @@
 .task-column-header h3 {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1f2a44;
+    color: var(--text-primary);
     margin: 0;
     letter-spacing: -0.01em;
 }
@@ -509,7 +534,7 @@
 
 .task-count {
     font-size: 0.85rem;
-    color: #888;
+    color: var(--text-muted);
     font-weight: 500;
 }
 
@@ -521,44 +546,44 @@
 
 .task-item {
     padding: 1rem;
-    background: #fafafa;
-    border-left: 3px solid #ddd;
+    background: var(--bg-tertiary);
+    border-left: 3px solid var(--border-color);
     border-radius: 0.5rem;
     transition: all 0.15s ease;
 }
 
 .task-item:hover {
-    background: #f5f5f5;
+    background: var(--bg-hover);
 }
 
 .task-item-overdue {
     border-left-color: #dc2626;
-    background: #fef2f2;
+    background: rgba(220, 38, 38, 0.1);
 }
 
 .task-item-overdue:hover {
-    background: #fee2e2;
+    background: rgba(220, 38, 38, 0.15);
     border-left-color: #b91c1c;
 }
 
 .task-item-upcoming {
     border-left-color: #2563eb;
-    background: #eff6ff;
+    background: rgba(37, 99, 235, 0.1);
 }
 
 .task-item-upcoming:hover {
-    background: #dbeafe;
+    background: rgba(37, 99, 235, 0.15);
     border-left-color: #1d4ed8;
 }
 
 .task-item-completed {
-    border-left-color: #9ca3af;
-    background: #f9fafb;
+    border-left-color: #6b7280;
+    background: var(--bg-tertiary);
     opacity: 0.75;
 }
 
 .task-item-completed:hover {
-    background: #f3f4f6;
+    background: var(--bg-hover);
     opacity: 0.9;
     border-left-color: #6b7280;
 }
@@ -566,21 +591,21 @@
 .task-title {
     font-size: 0.95rem;
     font-weight: 500;
-    color: #1f2a44;
+    color: var(--text-primary);
     margin-bottom: 0.35rem;
     line-height: 1.4;
 }
 
 .task-meta {
     font-size: 0.8rem;
-    color: #888;
+    color: var(--text-muted);
     font-weight: 400;
 }
 
 .empty-state {
     padding: 2rem 1rem;
     text-align: center;
-    color: #aaa;
+    color: var(--text-muted);
     font-size: 0.9rem;
 }
 
@@ -743,14 +768,18 @@
         return Math.Round((double)count / tasks * 100, 1);
     }
 
-    private string GetStatusClass(string status)
+    private string GetStatusClass(WorkStatus status)
     {
-        return status?.ToLower() switch
+        return status switch
         {
-            "not started" => "status-not-started",
-            "in progress" => "status-in-progress",
-            "completed" => "status-completed",
+            WorkStatus.ToDo => "status-not-started",
+            WorkStatus.InProgress => "status-in-progress",
+            WorkStatus.Completed => "status-completed",
+            WorkStatus.OnHold => "status-on-hold",
+            WorkStatus.Cancelled => "status-cancelled",
             _ => "status-not-started"
         };
     }
+
+    private string FormatEnumName(string name) => System.Text.RegularExpressions.Regex.Replace(name, "(\\B[A-Z])", " $1");
 }

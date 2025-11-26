@@ -86,7 +86,7 @@
 </EditForm>
 
 @code {
-    private Tasks task = new() { Status = "Just Started" };
+    private Tasks task = new() { Status = WorkStatus.ToDo, Priority = TaskPriority.Medium };
     private List<Employees> employees = new();
     private List<int> selectedEmployeeIds = new();
     private string? errorMessage;
@@ -145,7 +145,7 @@
                 Console.WriteLine($"Created task '{newTask.Title}' with {newTask.Id} id");
                 Console.WriteLine($"Assigned task to employees: {string.Join(", ", selectedEmployeeIds)}");
 
-                task = new() { Status = "Just Started" };
+                task = new() { Status = WorkStatus.ToDo, Priority = TaskPriority.Medium };
                 selectedEmployeeIds.Clear();
                 successMessage = "Task created successfully!";
                  

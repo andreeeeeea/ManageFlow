@@ -1,6 +1,8 @@
 ﻿@implements IDisposable
 
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
 
 <div class="top-row ps-3 navbar">
     <div class="container-fluid">
@@ -52,6 +54,11 @@
                         </NavLink>
                     </div>
                     <div class="nav-item px-3">
+                        <button class="nav-link nav-link-subtle" @onclick="ToggleTheme" @onclick:preventDefault="true">
+                            <span class="bi @(isDarkMode ? "bi-sun-fill" : "bi-moon-fill")" aria-hidden="true"></span> @(isDarkMode ? "Light Mode" : "Dark Mode")
+                        </button>
+                    </div>
+                    <div class="nav-item px-3">
                         <form action="Account/Logout" method="post">
                             <AntiforgeryToken />
                             <input type="hidden" name="ReturnUrl" value="@currentUrl" />
@@ -85,6 +92,7 @@
 
 @code {
     private string? currentUrl;
+    private bool isDarkMode = false;
 
     protected override void OnInitialized()
     {
@@ -92,10 +100,50 @@
         NavigationManager.LocationChanged += OnLocationChanged;
     }
 
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var currentTheme = await JSRuntime.InvokeAsync<bool>("themeManager.isDark");
+            if (currentTheme != isDarkMode)
+            {
+                isDarkMode = currentTheme;
+                StateHasChanged();
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isDarkMode = await JSRuntime.InvokeAsync<bool>("themeManager.isDark");
+        }
+        catch
+        {
+            // JS not available during prerender
+        }
+    }
+
+    private async Task ToggleTheme()
+    {
+        isDarkMode = !isDarkMode;
+        await JSRuntime.InvokeVoidAsync("themeManager.setTheme", isDarkMode ? "dark" : "light");
+    }
+
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
-        StateHasChanged();
+        try
+        {
+            isDarkMode = await JSRuntime.InvokeAsync<bool>("themeManager.isDark");
+            await JSRuntime.InvokeVoidAsync("themeManager.setTheme", isDarkMode ? "dark" : "light");
+        }
+        catch
+        {
+            // JS not available
+        }
+        await InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
