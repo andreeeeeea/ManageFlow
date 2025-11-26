@@ -2,9 +2,14 @@
 
 @inject NavigationManager NavigationManager
 
-<div class="top-row ps-3 navbar text-black">
+<div class="top-row ps-3 navbar">
     <div class="container-fluid">
-        <a class="navbar-brand fw-bold fs-3" href="">ManageFlow</a>
+        <a class="navbar-brand d-flex align-items-center gap-2" href="">
+            <span class="brand-icon">
+                <i class="bi bi-diagram-3-fill"></i>
+            </span>
+            <span class="brand-text">ManageFlow</span>
+        </a>
     </div>
 </div>
 
@@ -38,16 +43,6 @@
                             <span class="bi bi-building" aria-hidden="true"></span> Departments
                         </NavLink>
                     </div>
-
-                    <div class="nav-item px-3">
-                        <form action="Account/Logout" method="post">
-                            <AntiforgeryToken />
-                            <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                            <button type="submit" class="nav-link">
-                                <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Logout
-                            </button>
-                        </form>
-                    </div>
                 </div>
 
                 <div class="nav-bottom">
@@ -55,6 +50,15 @@
                         <NavLink class="nav-link" href="Account/Manage">
                             <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Profile
                         </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <form action="Account/Logout" method="post">
+                            <AntiforgeryToken />
+                            <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                            <button type="submit" class="nav-link nav-link-subtle">
+                                <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Logout
+                            </button>
+                        </form>
                     </div>
                 </div>
             </Authorized>

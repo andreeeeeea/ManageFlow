@@ -1,22 +1,23 @@
-﻿@page "/Account/Manage"
+@page "/Account/Manage"
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
 @using ManageFlow.Data
+@using ManageFlow.Services
+@using ManageFlow.Data.Models
 
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
+@inject IEmployeeService EmployeeService
+@inject ILogger<Index> Logger
 
 <PageTitle>Profile</PageTitle>
 
-<h3>Profile</h3>
-<StatusMessage />
-
 @if (isLoading)
 {
-    <div class="text-center py-3">
+    <div class="text-center py-5">
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
@@ -25,51 +26,557 @@
 }
 else
 {
-<div class="row">
-    <div class="col-xl-6">
-        <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <input type="text" value="@username" id="username" class="form-control" placeholder="Choose your username." disabled />
-                <label for="username" class="form-label">Email</label>
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="page-title mb-1">My Profile</h2>
+                <p class="text-muted mb-0">Manage your account information</p>
             </div>
-            <div class="form-floating mb-3">
-                <input type="text" value="@(user?.FirstName ?? "")" id="firstName" class="form-control" placeholder="Your first name" disabled />
-                <label for="firstName" class="form-label">First name</label>
-            </div>
-            <div class="form-floating mb-3">
-                <input type="text" value="@(user?.LastName ?? "")" id="lastName" class="form-control" placeholder="Your last name" disabled />
-                <label for="lastName" class="form-label">Last name</label>
-            </div>
-            <div class="form-floating mb-3">
-                <input type="text" value="@userRole" id="role" class="form-control" placeholder="Your role" disabled />
-                <label for="role" class="form-label">Role</label>
-            </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.PhoneNumber" id="Input.PhoneNumber" class="form-control" placeholder="Enter your phone number" />
-                <label for="Input.PhoneNumber" class="form-label">Phone number</label>
-                <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
-        </EditForm>
+        </div>
     </div>
-</div>
+
+        <div class="profile-banner">
+            <div class="banner-top">
+                <div class="profile-avatar-wrapper">
+                    <div class="profile-avatar">
+                        @GetInitials()
+                    </div>
+                </div>
+                <div class="profile-identity">
+                    <h2 class="profile-name">@user?.FirstName @user?.LastName</h2>
+                    <p class="profile-email">@username</p>
+                </div>
+                <div class="profile-badges">
+                    <span class="role-badge @GetRoleClass()">@userRole</span>
+                    @if (employee?.Position != null)
+                    {
+                        <span class="position-badge">@employee.Position</span>
+                    }
+                </div>
+            </div>
+            <div class="banner-info-grid">
+                <div class="banner-info-item">
+                    <i class="bi bi-envelope"></i>
+                    <div class="banner-info-content">
+                        <span class="banner-info-label">Email</span>
+                        <span class="banner-info-value">@username</span>
+                    </div>
+                </div>
+                <div class="banner-info-item">
+                    <i class="bi bi-telephone"></i>
+                    <div class="banner-info-content">
+                        <span class="banner-info-label">Phone</span>
+                        <span class="banner-info-value">@(string.IsNullOrEmpty(phoneNumber) ? "Not set" : phoneNumber)</span>
+                    </div>
+                </div>
+                @if (employee?.Department != null)
+                {
+                    <div class="banner-info-item">
+                        <i class="bi bi-building"></i>
+                        <div class="banner-info-content">
+                            <span class="banner-info-label">Department</span>
+                            <span class="banner-info-value">@employee.Department.Name</span>
+                        </div>
+                    </div>
+                }
+                @if (employee?.Salary > 0)
+                {
+                    <div class="banner-info-item">
+                        <i class="bi bi-currency-dollar"></i>
+                        <div class="banner-info-content">
+                            <span class="banner-info-label">Salary</span>
+                            <span class="banner-info-value">@employee.Salary.ToString("N0") / year</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="profile-columns">
+            <div class="profile-column">
+                <div class="profile-section">
+                    <h3 class="section-title">Edit Phone Number</h3>
+
+                    @if (!string.IsNullOrEmpty(phoneMessage))
+                    {
+                        <div class="alert @(phoneMessage.Contains("Error") ? "alert-danger" : "alert-success") mb-3" role="alert">
+                            @phoneMessage
+                        </div>
+                    }
+
+                    <EditForm Model="PhoneInput" FormName="profile" OnValidSubmit="OnPhoneSubmitAsync" method="post">
+                        <DataAnnotationsValidator />
+
+                        <div class="edit-form-group">
+                            <label for="PhoneInput.PhoneNumber" class="edit-label">Phone Number</label>
+                            <InputText @bind-Value="PhoneInput.PhoneNumber" id="PhoneInput.PhoneNumber" class="edit-input" placeholder="Enter your phone number" />
+                            <ValidationMessage For="() => PhoneInput.PhoneNumber" class="text-danger" />
+                        </div>
+
+                        <button type="submit" class="save-button">
+                            <i class="bi bi-check-lg me-2"></i>
+                            Save Phone Number
+                        </button>
+                    </EditForm>
+                </div>
+
+                <div class="profile-section danger-section">
+                    <h3 class="section-title text-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Danger Zone
+                    </h3>
+
+                    <div class="danger-warning">
+                        <p><strong>Delete your account</strong></p>
+                        <p class="text-muted mb-0">Once you delete your account, there is no going back. Please be certain.</p>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(deleteMessage))
+                    {
+                        <div class="alert alert-danger mb-3" role="alert">
+                            @deleteMessage
+                        </div>
+                    }
+
+                    @if (!showDeleteConfirm)
+                    {
+                        <button type="button" class="delete-button" @onclick="ShowDeleteConfirmation">
+                            <i class="bi bi-trash me-2"></i>
+                            Delete Account
+                        </button>
+                    }
+                    else
+                    {
+                        <div class="delete-confirm-box">
+                            <p class="mb-3"><strong>Are you sure?</strong> Enter your password to confirm deletion.</p>
+
+                            <EditForm Model="DeleteInput" FormName="delete-account" OnValidSubmit="OnDeleteSubmitAsync" method="post">
+                                <DataAnnotationsValidator />
+
+                                @if (requirePassword)
+                                {
+                                    <div class="edit-form-group">
+                                        <label for="DeleteInput.Password" class="edit-label">Password</label>
+                                        <InputText type="password" @bind-Value="DeleteInput.Password" id="DeleteInput.Password" class="edit-input" placeholder="Enter your password" autocomplete="current-password" />
+                                        <ValidationMessage For="() => DeleteInput.Password" class="text-danger" />
+                                    </div>
+                                }
+
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="cancel-button" @onclick="CancelDelete">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="confirm-delete-button">
+                                        <i class="bi bi-trash me-2"></i>
+                                        Yes, Delete My Account
+                                    </button>
+                                </div>
+                            </EditForm>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="profile-column">
+                <div class="profile-section">
+                    <h3 class="section-title">Change Password</h3>
+
+                    @if (!string.IsNullOrEmpty(passwordMessage))
+                    {
+                        <div class="alert @(passwordMessage.Contains("Error") ? "alert-danger" : "alert-success") mb-3" role="alert">
+                            @passwordMessage
+                        </div>
+                    }
+
+                    <EditForm Model="PasswordInput" FormName="change-password" OnValidSubmit="OnPasswordSubmitAsync" method="post">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger" role="alert" />
+
+                        <div class="edit-form-group">
+                            <label for="PasswordInput.OldPassword" class="edit-label">Current Password</label>
+                            <InputText type="password" @bind-Value="PasswordInput.OldPassword" id="PasswordInput.OldPassword" class="edit-input" placeholder="Enter current password" autocomplete="current-password" />
+                            <ValidationMessage For="() => PasswordInput.OldPassword" class="text-danger" />
+                        </div>
+
+                        <div class="edit-form-group">
+                            <label for="PasswordInput.NewPassword" class="edit-label">New Password</label>
+                            <InputText type="password" @bind-Value="PasswordInput.NewPassword" id="PasswordInput.NewPassword" class="edit-input" placeholder="Enter new password" autocomplete="new-password" />
+                            <ValidationMessage For="() => PasswordInput.NewPassword" class="text-danger" />
+                        </div>
+
+                        <div class="edit-form-group">
+                            <label for="PasswordInput.ConfirmPassword" class="edit-label">Confirm New Password</label>
+                            <InputText type="password" @bind-Value="PasswordInput.ConfirmPassword" id="PasswordInput.ConfirmPassword" class="edit-input" placeholder="Confirm new password" autocomplete="new-password" />
+                            <ValidationMessage For="() => PasswordInput.ConfirmPassword" class="text-danger" />
+                        </div>
+
+                        <button type="submit" class="save-button">
+                            <i class="bi bi-shield-lock me-2"></i>
+                            Update Password
+                        </button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
 }
 
+<style>
+    .profile-banner {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .banner-top {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .profile-avatar-wrapper {
+        width: 5rem;
+        height: 5rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+        flex-shrink: 0;
+    }
+
+    .profile-avatar {
+        width: 4rem;
+        height: 4rem;
+        background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #1f2a44;
+        font-weight: 600;
+        font-size: 1.5rem;
+    }
+
+    .profile-identity {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .profile-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: white;
+        margin: 0;
+    }
+
+    .profile-email {
+        color: rgba(255, 255, 255, 0.7);
+        margin: 0;
+    }
+
+    .profile-badges {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .banner-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .banner-info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        backdrop-filter: blur(4px);
+    }
+
+    .banner-info-item i {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1.125rem;
+    }
+
+    .banner-info-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .banner-info-label {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.6);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .banner-info-value {
+        font-weight: 500;
+        color: white;
+        font-size: 0.95rem;
+    }
+
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .role-badge.role-admin {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    .role-badge.role-manager {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+
+    .role-badge.role-employee {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+
+    .position-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    .profile-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .profile-column {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .profile-section {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        border: 1px solid #e2e8f0;
+    }
+
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2a44;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .edit-form-group {
+        margin-bottom: 1rem;
+    }
+
+    .edit-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1f2a44;
+        margin-bottom: 0.375rem;
+    }
+
+    .edit-input {
+        width: 100%;
+        padding: 0.625rem 1rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .edit-input:focus {
+        border-color: #64748b;
+        box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.15);
+    }
+
+    .save-button {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background-color: #1f2a44;
+        color: white;
+        padding: 0.625rem 1rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+
+    .save-button:hover {
+        background-color: #161d33;
+    }
+
+    .danger-section {
+        border-color: #fecaca;
+    }
+
+    .danger-section .section-title {
+        border-bottom-color: #fecaca;
+    }
+
+    .danger-warning {
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .danger-warning p {
+        margin: 0;
+    }
+
+    .delete-button {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background-color: white;
+        color: #dc2626;
+        padding: 0.625rem 1rem;
+        border: 1px solid #dc2626;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .delete-button:hover {
+        background-color: #dc2626;
+        color: white;
+    }
+
+    .delete-confirm-box {
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 0.5rem;
+        padding: 1rem;
+    }
+
+    .cancel-button {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f1f5f9;
+        color: #475569;
+        padding: 0.625rem 1rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+
+    .cancel-button:hover {
+        background-color: #e2e8f0;
+    }
+
+    .confirm-delete-button {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background-color: #dc2626;
+        color: white;
+        padding: 0.625rem 1rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+
+    .confirm-delete-button:hover {
+        background-color: #b91c1c;
+    }
+
+    @@media (max-width: 768px) {
+        .profile-columns {
+            grid-template-columns: 1fr;
+        }
+
+        .banner-top {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .profile-identity {
+            min-width: auto;
+        }
+
+        .profile-badges {
+            justify-content: center;
+        }
+
+        .banner-info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
 @code {
-    private ApplicationUser user = default!;
+    private ApplicationUser? user;
+    private Employees? employee;
     private string? username;
     private string? phoneNumber;
     private bool isLoading = true;
+    private string userRole = "";
+    private bool requirePassword = true;
+    private bool showDeleteConfirm = false;
+
+    private string? phoneMessage;
+    private string? passwordMessage;
+    private string? deleteMessage;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
-    [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = new();
+    [SupplyParameterFromForm(FormName = "profile")]
+    private PhoneInputModel PhoneInput { get; set; } = new();
 
-    private string userRole = "";
+    [SupplyParameterFromForm(FormName = "change-password")]
+    private PasswordInputModel PasswordInput { get; set; } = new();
+
+    [SupplyParameterFromForm(FormName = "delete-account")]
+    private DeleteInputModel DeleteInput { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -78,13 +585,18 @@ else
             user = await UserAccessor.GetRequiredUserAsync(HttpContext);
             username = await UserManager.GetUserNameAsync(user);
             phoneNumber = await UserManager.GetPhoneNumberAsync(user);
+            requirePassword = await UserManager.HasPasswordAsync(user);
 
-            if (user != null){
+            if (user != null)
+            {
                 var roles = await UserManager.GetRolesAsync(user);
-                userRole = roles.FirstOrDefault() ?? "";
+                userRole = roles.FirstOrDefault() ?? "User";
+
+                var employees = await EmployeeService.GetEmployeesAsync();
+                employee = employees.FirstOrDefault(e => e.UserId == user.Id);
             }
 
-            Input.PhoneNumber ??= phoneNumber;
+            PhoneInput.PhoneNumber ??= phoneNumber;
         }
         finally
         {
@@ -92,25 +604,119 @@ else
         }
     }
 
-    private async Task OnValidSubmitAsync()
+    private string GetInitials()
     {
-        if (Input.PhoneNumber != phoneNumber)
-        {
-            var setPhoneResult = await UserManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
-            if (!setPhoneResult.Succeeded)
-            {
-                RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to set phone number.", HttpContext);
-            }
-        }
-
-        await SignInManager.RefreshSignInAsync(user);
-        RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated", HttpContext);
+        var first = string.IsNullOrEmpty(user?.FirstName) ? "" : user.FirstName[0].ToString().ToUpper();
+        var last = string.IsNullOrEmpty(user?.LastName) ? "" : user.LastName[0].ToString().ToUpper();
+        return $"{first}{last}";
     }
 
-    private sealed class InputModel
+    private string GetRoleClass()
+    {
+        return userRole.ToLower() switch
+        {
+            "admin" => "role-admin",
+            "manager" => "role-manager",
+            _ => "role-employee"
+        };
+    }
+
+    private async Task OnPhoneSubmitAsync()
+    {
+        if (PhoneInput.PhoneNumber != phoneNumber)
+        {
+            var setPhoneResult = await UserManager.SetPhoneNumberAsync(user!, PhoneInput.PhoneNumber);
+            if (!setPhoneResult.Succeeded)
+            {
+                phoneMessage = "Error: Failed to set phone number.";
+                return;
+            }
+            phoneNumber = PhoneInput.PhoneNumber;
+        }
+
+        await SignInManager.RefreshSignInAsync(user!);
+        phoneMessage = "Phone number updated successfully.";
+    }
+
+    private async Task OnPasswordSubmitAsync()
+    {
+        var changePasswordResult = await UserManager.ChangePasswordAsync(user!, PasswordInput.OldPassword, PasswordInput.NewPassword);
+        if (!changePasswordResult.Succeeded)
+        {
+            passwordMessage = $"Error: {string.Join(", ", changePasswordResult.Errors.Select(error => error.Description))}";
+            return;
+        }
+
+        await SignInManager.RefreshSignInAsync(user!);
+        Logger.LogInformation("User changed their password successfully.");
+        passwordMessage = "Your password has been changed successfully.";
+
+        PasswordInput = new PasswordInputModel();
+    }
+
+    private void ShowDeleteConfirmation()
+    {
+        showDeleteConfirm = true;
+    }
+
+    private void CancelDelete()
+    {
+        showDeleteConfirm = false;
+        DeleteInput = new DeleteInputModel();
+        deleteMessage = null;
+    }
+
+    private async Task OnDeleteSubmitAsync()
+    {
+        if (requirePassword && !await UserManager.CheckPasswordAsync(user!, DeleteInput.Password))
+        {
+            deleteMessage = "Incorrect password.";
+            return;
+        }
+
+        var result = await UserManager.DeleteAsync(user!);
+        if (!result.Succeeded)
+        {
+            deleteMessage = "Unexpected error occurred deleting user.";
+            return;
+        }
+
+        await SignInManager.SignOutAsync();
+        var userId = await UserManager.GetUserIdAsync(user!);
+        Logger.LogInformation("User with ID '{UserId}' deleted themselves.", userId);
+
+        RedirectManager.RedirectTo("/");
+    }
+
+    private sealed class PhoneInputModel
     {
         [Phone]
         [Display(Name = "Phone number")]
         public string? PhoneNumber { get; set; }
+    }
+
+    private sealed class PasswordInputModel
+    {
+        [Required]
+        [DataType(DataType.Password)]
+        [Display(Name = "Current password")]
+        public string OldPassword { get; set; } = "";
+
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        [Display(Name = "New password")]
+        public string NewPassword { get; set; } = "";
+
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm new password")]
+        [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; } = "";
+    }
+
+    private sealed class DeleteInputModel
+    {
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
     }
 }

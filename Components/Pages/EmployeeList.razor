@@ -9,11 +9,11 @@
 @inject UserManager<ApplicationUser> UserManager
 @rendermode InteractiveServer
 
-<div class="page-header mb-4">
+<div class="page-header">
     <div class="d-flex justify-content-between align-items-center">
         <div>
-            <h2 class="page-title">👥 Employee Directory</h2>
-            <p class="text-muted">Manage your team and their information</p>
+            <h2 class="page-title mb-1">👥 Employee Directory</h2>
+            <p class="text-muted mb-0">Manage your team and their information</p>
         </div>
         @if (isManager)
         {
@@ -91,6 +91,10 @@ else
                         <div class="flex-grow-1">
                             <h5 class="employee-name mb-0">
                                 @employee.FirstName @employee.LastName
+                                @if (employee.UserId == currentUserId)
+                                {
+                                    <span class="you-badge">(You)</span>
+                                }
                             </h5>
                             <p class="employee-position mb-2">@employee.Position</p>
                             <div class="employee-details">
@@ -194,6 +198,14 @@ else
         color: #1e293b;
     }
 
+    .you-badge {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #0d6efd;
+        margin-left: 0.5rem;
+        vertical-align: middle;
+    }
+
     .employee-position {
         font-size: 0.95rem;
         color: #475569;
@@ -256,6 +268,7 @@ else
     private bool showAddEmployeeForm = false;
     private bool showEditEmployeeForm = false;
     private bool isManager = false;
+    private string? currentUserId;
 
     private IEnumerable<Employees> FilteredEmployees =>
         employees?.Where(e =>
@@ -280,6 +293,7 @@ else
                 var user = await UserManager.GetUserAsync(authState.User);
                 if (user != null)
                 {
+                    currentUserId = user.Id;
                     isManager = await UserManager.IsInRoleAsync(user, "Manager")
                              || await UserManager.IsInRoleAsync(user, "Admin");
                 }

@@ -48,6 +48,19 @@ a:hover, .btn-link:hover {
     box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
 }
 
+.btn-dark {
+    background-color: #1f2a44;
+    color: white;
+    box-shadow: 0 4px 15px rgba(31, 42, 68, 0.3);
+}
+
+.btn-dark:hover {
+    background-color: #161d33;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(31, 42, 68, 0.4);
+}
+
 .btn-danger:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(245, 87, 108, 0.5);
@@ -233,14 +246,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .page-header {
-    padding: 2rem 0;
-    margin-bottom: 2rem;
-    background: rgba(255, 255, 255, 0);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px); /* Safari support */
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 15px;
-    text-align: center;
+    padding-top: 0.5rem;
+    padding-bottom: 0;
+    margin-bottom: 1.5rem;
 }
 
 .page-title {
@@ -301,7 +309,7 @@ h1, h2, h3, h4, h5, h6 {
     }
 
     .page-header {
-        padding: 1rem;
+        padding-top: 0.25rem;
         margin-bottom: 1rem;
     }
 

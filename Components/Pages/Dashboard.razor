@@ -12,16 +12,20 @@
 
 <AuthorizeView>
     <Authorized>
-        <div class="dashboard-header">
-            <h1 class="welcome-title">@userFirstName @userLastName</h1>
-            <p class="welcome-subtitle">@DateTime.Now.ToString("MMMM dd, yyyy"), @DateTime.Now.ToString("h:mm tt")</p>
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="page-title mb-1">Welcome, @userFirstName @userLastName</h2>
+                    <p class="text-muted mb-0">@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</p>
+                </div>
+            </div>
         </div>
 
         <div class="stats-grid mb-5">
             <div class="stat-box">
                 <div class="stat-content-wrapper">
                     <span class="stat-value">@employees</span>
-                    <span class="stat-text">Department Members</span>
+                    <span class="stat-text">Members</span>
                 </div>
                 <div class="stat-icon-wrapper">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -68,35 +72,60 @@
             </div>
         </div>
 
-        <div class="status-breakdown mb-5">
-            <h2 class="breakdown-title">Task Status Breakdown</h2>
-            <div class="status-list">
-                <div class="status-row">
-                    <div class="status-header">
-                        <span class="status-name">Not Started</span>
-                        <span class="status-count">@notStartedTasks</span>
+        <div class="dashboard-grid mb-5">
+            <div class="status-breakdown">
+                <h2 class="breakdown-title">Task Status Breakdown</h2>
+                <div class="status-list">
+                    <div class="status-row">
+                        <div class="status-header">
+                            <span class="status-name">Not Started</span>
+                            <span class="status-count">@notStartedTasks</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-notstarted" style="width: @GetPercentage(notStartedTasks)%"></div>
+                        </div>
                     </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill progress-notstarted" style="width: @GetPercentage(notStartedTasks)%"></div>
+                    <div class="status-row">
+                        <div class="status-header">
+                            <span class="status-name">In Progress</span>
+                            <span class="status-count">@inProgressTasks</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-inprogress" style="width: @GetPercentage(inProgressTasks)%"></div>
+                        </div>
+                    </div>
+                    <div class="status-row">
+                        <div class="status-header">
+                            <span class="status-name">Completed</span>
+                            <span class="status-count">@completedTasks</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-completed" style="width: @GetPercentage(completedTasks)%"></div>
+                        </div>
                     </div>
                 </div>
-                <div class="status-row">
-                    <div class="status-header">
-                        <span class="status-name">In Progress</span>
-                        <span class="status-count">@inProgressTasks</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill progress-inprogress" style="width: @GetPercentage(inProgressTasks)%"></div>
-                    </div>
-                </div>
-                <div class="status-row">
-                    <div class="status-header">
-                        <span class="status-name">Completed</span>
-                        <span class="status-count">@completedTasks</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill progress-completed" style="width: @GetPercentage(completedTasks)%"></div>
-                    </div>
+            </div>
+
+            <div class="recent-tasks-container">
+                <h2 class="breakdown-title">Recent Tasks</h2>
+                <div class="recent-tasks-list">
+                    @if (recentTasks.Count == 0)
+                    {
+                        <div class="empty-state">No tasks yet</div>
+                    }
+                    else
+                    {
+                        @foreach (var task in recentTasks)
+                        {
+                            <div class="recent-task-item">
+                                <div class="recent-task-info">
+                                    <span class="recent-task-title">@task.Title</span>
+                                    <span class="recent-task-meta">@GetAssignedEmployees(task)</span>
+                                </div>
+                                <span class="recent-task-status @GetStatusClass(task.Status)">@task.Status</span>
+                            </div>
+                        }
+                    }
                 </div>
             </div>
         </div>
@@ -200,27 +229,6 @@
 </AuthorizeView>
 
 <style>
-.dashboard-header {
-    margin-bottom: 3rem;
-    border-bottom: 1px solid #e0e0e0;
-    padding-bottom: 1.5rem;
-}
-
-.welcome-title {
-    font-size: 2.25rem;
-    font-weight: 500;
-    color: #111;
-    margin: 0;
-    letter-spacing: -0.02em;
-}
-
-.welcome-subtitle {
-    font-size: 0.9rem;
-    color: #888;
-    margin: 0.25rem 0 0 0;
-    font-weight: 400;
-}
-
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -234,12 +242,14 @@
     align-items: center;
     justify-content: space-between;
     gap: 1.25rem;
-    border: 1px solid #e0e0e0;
-    transition: border-color 0.2s ease;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
 }
 
 .stat-box:hover {
-    border-color: #111;
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .stat-icon-wrapper {
@@ -247,7 +257,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #111;
+    color: #1f2a44;
 }
 
 .stat-icon-wrapper svg {
@@ -263,7 +273,7 @@
 .stat-value {
     font-size: 2rem;
     font-weight: 600;
-    color: #111;
+    color: #1f2a44;
     line-height: 1;
 }
 
@@ -277,14 +287,15 @@
 
 .status-breakdown {
     background: white;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
     padding: 2rem;
 }
 
 .breakdown-title {
     font-size: 1rem;
     font-weight: 600;
-    color: #111;
+    color: #1f2a44;
     margin: 0 0 1.5rem 0;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -311,12 +322,12 @@
 .status-name {
     font-size: 0.9rem;
     font-weight: 500;
-    color: #111;
+    color: #1f2a44;
 }
 
 .status-count {
     font-size: 1.5rem;
-    color: #111;
+    color: #1f2a44;
     font-weight: 600;
 }
 
@@ -324,6 +335,7 @@
     width: 100%;
     height: 8px;
     background: #f3f4f6;
+    border-radius: 4px;
     overflow: hidden;
 }
 
@@ -344,6 +356,92 @@
     background: #10b981;
 }
 
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.recent-tasks-container {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    max-height: 320px;
+}
+
+.recent-tasks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.recent-task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: #fafafa;
+    border-radius: 0.5rem;
+    border-left: 3px solid #e2e8f0;
+    transition: all 0.15s ease;
+}
+
+.recent-task-item:hover {
+    background: #f5f5f5;
+}
+
+.recent-task-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.recent-task-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #1f2a44;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.recent-task-meta {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.recent-task-status {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    white-space: nowrap;
+    margin-left: 1rem;
+}
+
+.status-not-started {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.status-in-progress {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.status-completed {
+    background: #d1fae5;
+    color: #059669;
+}
+
 .tasks-section {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -361,7 +459,7 @@
     align-items: baseline;
     margin-bottom: 1rem;
     padding-bottom: 0.75rem;
-    border-bottom: 2px solid #111;
+    border-bottom: 2px solid #1f2a44;
 }
 
 .header-with-icon {
@@ -377,7 +475,7 @@
 .task-column-header h3 {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #111;
+    color: #1f2a44;
     margin: 0;
     letter-spacing: -0.01em;
 }
@@ -425,6 +523,7 @@
     padding: 1rem;
     background: #fafafa;
     border-left: 3px solid #ddd;
+    border-radius: 0.5rem;
     transition: all 0.15s ease;
 }
 
@@ -467,7 +566,7 @@
 .task-title {
     font-size: 0.95rem;
     font-weight: 500;
-    color: #111;
+    color: #1f2a44;
     margin-bottom: 0.35rem;
     line-height: 1.4;
 }
@@ -494,6 +593,10 @@
         font-size: 2rem;
     }
 
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
     .tasks-section {
         grid-template-columns: 1fr;
         gap: 2.5rem;
@@ -512,6 +615,7 @@
     private List<Tasks> overdueTasks = new List<Tasks>();
     private List<Tasks> upcomingTasks = new List<Tasks>();
     private List<Tasks> recentCompletions = new();
+    private List<Tasks> recentTasks = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -548,6 +652,11 @@
 
             recentCompletions = (await TaskService.GetCompletedTasksAsync())
                 .OrderByDescending(t => t.UpdatedAt)
+                .Take(5)
+                .ToList();
+
+            recentTasks = (await TaskService.GetTasksAsync())
+                .OrderByDescending(t => t.CreatedAt)
                 .Take(5)
                 .ToList();
         }
@@ -632,5 +741,16 @@
     {
         if (tasks == 0) return 0;
         return Math.Round((double)count / tasks * 100, 1);
+    }
+
+    private string GetStatusClass(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "not started" => "status-not-started",
+            "in progress" => "status-in-progress",
+            "completed" => "status-completed",
+            _ => "status-not-started"
+        };
     }
 }
